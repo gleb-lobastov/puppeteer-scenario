@@ -1,0 +1,41 @@
+{
+  "name": "puppeteer-scenario",
+  "version": "0.1.0",
+  "description": "Small lib that helps write declarative tests with puppeteer",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "rollup --config rollup.config.js",
+    "prepare": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gleb-lobastov/puppeteer-scenario.git"
+  },
+  "keywords": [
+    "puppeteer",
+    "testing",
+    "arrange",
+    "act",
+    "assert",
+    "scenario"
+  ],
+  "author": "Gleb Lobastov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gleb-lobastov/puppeteer-scenario/issues"
+  },
+  "homepage": "https://github.com/gleb-lobastov/puppeteer-scenario#readme",
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/preset-env": "^7.9.0",
+    "@rollup/plugin-node-resolve": "^7.1.1",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb": "^18.1.0",
+    "eslint-plugin-import": "^2.20.2",
+    "prettier": "^2.0.2",
+    "rollup": "^2.3.2",
+    "rollup-plugin-babel": "^4.4.0"
+  }
+}
