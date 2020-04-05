@@ -1,3 +1,9 @@
+![npm](https://img.shields.io/npm/v/puppeteer-scenario?logo=npm)
+
+Install:
+
+```npm i -D puppeteer-scenario```
+
 Allow to write declarative scenarios for tests in puppeteer like this:
 
 ```javascript
