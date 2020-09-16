@@ -1,6 +1,6 @@
 import "regenerator-runtime";
 import puppeteer from "puppeteer";
-import Scenario from "../../src/Scenario";
+import Scenario from "../../src";
 import jestScenario from "../scenarios/jestScenario";
 import puppeteerScenario from "../scenarios/puppeteerScenario";
 import PuppeteerScene from "../scenes/PuppeteerScene";
