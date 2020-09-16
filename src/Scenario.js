@@ -10,7 +10,7 @@ export default class Scenario {
   }
 
   log(message) {
-    if (process.env.DEBUG) {
+    if (process.env.DEBUG_PUPPETEER_SCENARIO) {
       console.log(`Scenario "${this.name}":`, message);
     }
   }

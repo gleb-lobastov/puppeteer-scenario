@@ -13,7 +13,9 @@ beforeAll(async () => {
     slowMo: 50,
     devtools: true
   };
-  browser = await puppeteer.launch(process.env.DEBUG ? debugConfig : {});
+  browser = await puppeteer.launch(
+    process.env.DEBUG_PUPPETEER_SCENARIO ? debugConfig : {}
+  );
   page = await browser.newPage();
 });
 

@@ -7,7 +7,7 @@
     "build": "rollup --config rollup.config.js",
     "prepare": "npm run build",
     "test": "jest",
-    "test:debug": "cross-env DEBUG=true jest"
+    "test:debug": "cross-env DEBUG_PUPPETEER_SCENARIO=true jest"
   },
   "repository": {
     "type": "git",
