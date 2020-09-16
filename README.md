@@ -13,7 +13,6 @@ Idea is, that tests decomposed into two parts. High-level "scenario" part, where
 ## Example
 
 [Check example](./test/__tests__/test-Scenario.js)
-[Check example](./test/scenes/JestScene.js)
 
 ## Usage
 
@@ -89,3 +88,5 @@ export default class MyScene {
   }
 }
 ```
+
+[Check example](./test/scenes/JestScene.js)
