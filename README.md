@@ -35,11 +35,15 @@ describe("MyScenario", () => {
 
 ## API
 
+### include
+
 `include(otherScenario)` — copy all steps from other scenario to the current one (in place of the current step). Useful to include authorization steps. The other scenario remains unchanged
+
+### arrange
 
 `arrange(options)` — prepare page for test
 
-available options:
+**available options:**
 
 | option name        | default value | description                                                      |
 | ------------------ | ------------- | ---------------------------------------------------------------- |
@@ -48,22 +52,28 @@ available options:
 | scene              | —             | setup current scene, if provided (see Scene section for details) |
 | ...sceneProperties | {}            | params that forwarder to Scene instance arrange method           |
 
+### act
+
 `act(actionName, ...actionArgs)` — perform low-level action, that coded inside Scene class. actionName is the method name of Scene instance, args are arguments that will be passed to this method
+
+### assert
 
 `assert(callback, options)` — place to make assertions
 
-callback signature:
+**callback signature:**
 `({page, scene, context}) => {/*...*/}`
 
-available options:
+**available options:**
 
 | option name     | default value | description                          |
 | --------------- | ------------- | ------------------------------------ |
 | assertionsCount | 1             | how much assertions made by callback |
 
+### play
+
 `play(options)` — perform scenario and call all async actions
 
-available options:
+**available options:**
 
 | option name | default value | description            |
 | ----------- | ------------- | ---------------------- |
