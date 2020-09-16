@@ -1,101 +1,84 @@
 ![npm](https://img.shields.io/npm/v/puppeteer-scenario?logo=npm)
 
-Install:
+## Install
 
-```npm i -D puppeteer-scenario```
+`npm i -D puppeteer-scenario`
 
-Allow to write declarative scenarios for tests in puppeteer like this:
+## Description
+
+Allow writing declarative and reusable scenarios for tests in puppeteer in AAA (Arrange-Act-Assert) pattern.
+
+Idea is, that tests decomposed to high-level "scenario" part, where described intentions. And low-level "scenes", where is the actual call to puppeteer is made
+
+## Example
+
+[Check example](./test/__tests__/test-Scenario.js)
+
+## Usage
 
 ```javascript
-import puppeteer from "puppeteer";
 import Scenario from "puppeteer-scenario";
-import LoginScene from "./scenes/LoginScene";
-import VisitsScene from "./scenes/VisitsScene";
-import CreateTripScene from "./scenes/CreateTripScene";
-import EditTripScene from "./scenes/EditTripScene";
 
-const TEST_LOGIN = "...";
-const TEST_PASSWORD = "...";
-const TEST_USER_ALIAS = "...";
-
-describe("user scenarios", () => {
-  it("should login, create trip, visits and rides", async () => {
-    jest.setTimeout(100000);
-    expect.assertions(1);
-
-    const browser = await puppeteer.launch({
-      headless: false,
-      slowMo: 50,
-      devtools: true
-    });
-    const page = await browser.newPage();
-    Object.assign(global, { browser, page });
-
-    await new Scenario(page)
-      .showScene(LoginScene)
-      .act("login", { login: TEST_LOGIN, password: TEST_PASSWORD })
-      .then(({ isAuthorized }) => expect(isAuthorized).toBe(true))
-
-      .showScene(VisitsScene, { userAlias: TEST_USER_ALIAS })
-      .act("goCreateTrip")
-
-      .expectScene(CreateTripScene)
-      .act("createTrip")
-
-      .expectScene(EditTripScene)
-      .act(async editTripScene => {
-        await editTripScene.createVisitDialogActions.createVisit();
-        await editTripScene.createVisitDialogActions.createVisit();
-        await editTripScene.createRideDialogActions.createRide();
-        await editTripScene.createRideDialogActions.createRide();
-        await editTripScene.createRideDialogActions.createRide();
-      })
-
-      .play();
-
-    await page.waitForFunction("false", { timeout: 10000000 });
-    await browser.close();
-  });
-});
+new Scenario("scenarioNameForLogs")
+  .include("...")
+  .arrange("...")
+  .act("...")
+  .assert("...")
+  .play("...");
 ```
 
-Each scene is a class that represents particular view and provide some actions to execute in view
+## API
 
-For example LoginScene:
+`include(otherScenario)` — copies all steps of other scenario to the current one (after position where it included). Useful to include authorization steps. Other scenario remains unchanged
+
+`arrange(options)` — prepare test:
+
+available options:
+
+| option name        | default value | description                                                      |
+| ------------------ | ------------- | ---------------------------------------------------------------- |
+| page               | —             | update current puppeteer page, if provided                       |
+| url                | —             | navigate to url, if provided                                     |
+| scene              | —             | setup current scene, if provided (see Scene section for details) |
+| ...sceneProperties | {}            | params that forwarder to Scene instance arrange method           |
+
+`act(actionName, ...actionArgs)` — perform low-level action, that coded inside Scene class. actionName is the method name of Scene instance, args are arguments that will be passed to this method
+
+`assert(callback, options)` — place to make assertions
+
+callback signature:
+`({page, scene, context}) => {/*...*/}`
+
+available options:
+
+| option name     | default value | description                          |
+| --------------- | ------------- | ------------------------------------ |
+| assertionsCount | 1             | how much assertions made by callback |
+
+`play(options)` — perform scenario and call all async actions
+
+available options:
+
+| option name | default value | description            |
+| ----------- | ------------- | ---------------------- |
+| page        | global.page   | initial puppeteer page |
+
+## Scene
+
+Scene is a class written by users of the library, that has such structure:
 
 ```javascript
-import * as loginPageLocators from "../src/LoginPage/locators";
-
-export default class LoginScene {
+export default class JestScene {
   constructor(page) {
+    // Assumed, that scene instance is always used with same page
     this.page = page;
   }
 
-  async show() {
-    await this.page.goto("/mine/hello", { waitUntil: "networkidle2" });
+  // optional method, if present, will be called automatically after arrange call with new Scene in scenario
+  async arrange(sceneProperties) {}
+
+  async customMethod(context, ...actionArgs) {
+    // use this.page to execute puppeteer commands here
   }
-
-  async login({ login, password }) {
-    const loginFieldSelector = toSelector(loginPageLocators.LOGIN_INPUT);
-    await this.page.waitFor(loginFieldSelector);
-    await this.page.evaluate(evaluateInputValue, loginFieldSelector, login);
-    await this.page.evaluate(
-      evaluateInputValue,
-      toSelector(loginPageLocators.PASSWORD_INPUT),
-      password
-    );
-    await this.page.click(toSelector(loginPageLocators.SUBMIT_BUTTON));
-    await this.page.waitForResponse(url => url.includes("/api/login"));
-    return { isAuthorized: Boolean(localStorage.get("authToken")) };
-  }
-}
-
-function toSelector(locator) {
-  return `[data-locator="${locator}"] `;
-}
-
-function evaluateInputValue(fieldSelector, value) {
-  const element = document.querySelector(`${fieldSelector}`);
-  element.value = value;
 }
 ```

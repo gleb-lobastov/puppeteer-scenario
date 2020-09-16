@@ -1,86 +1,114 @@
-import Context from "./Context";
+import ScenarioContext from "./ScenarioContext";
 
 export default class Scenario {
-  constructor(page) {
-    this.page = page;
-    this.acts = [];
-    this.actResult = null;
-    this.actError = null;
-    this.context = new Context();
+  constructor(name) {
+    this.name = name;
+    this.steps = [];
+    this.assertionsCount = 0;
+    this.stepIndex = 0;
+    return this;
+  }
+
+  log(message) {
+    console.log(`Scenario "${this.name}":`, message);
+  }
+
+  step(action) {
+    this.steps.push(action);
+    return this;
+  }
+
+  include(scenario) {
+    this.steps.push(...scenario.steps);
+    this.assertionsCount += scenario.assertionsCount;
+    return this;
+  }
+
+  arrange({ scene: Scene, page, url, ...sceneProperties }) {
+    this.step(async context => {
+      if (page) {
+        this.log("arrange page");
+        await context.setPage(page);
+      }
+      const currentPage = page || context.getPage();
+      if (url) {
+        this.log("arrange url", url, Boolean(currentPage));
+        await currentPage.goto(url, { waitUntil: "networkidle2" });
+      }
+      if (Scene) {
+        const scene = new Scene(currentPage);
+        this.log(`arrange scene "${getSceneName(scene)}"`);
+        context.setScene(scene);
+        if (scene.arrange) {
+          await scene.arrange(sceneProperties);
+        }
+      }
+    });
     return this;
   }
 
   act(action, ...args) {
-    this.acts.push({
-      scene: this.curentScene,
-      action,
-      args
-    });
-    return this;
-  }
-
-  showScene(Scene, ...args) {
-    this.expectScene(Scene);
-    this.act("show", ...args);
-    return this;
-  }
-
-  expectScene = Scene => {
-    this.act(() => {
-      this.currentScene = new Scene(this.page, this.context);
-    });
-    return this;
-  };
-
-  then(onResolve, onError) {
-    this.act(() => {
-      if (this.actError) {
-        onError(this.actError);
-      } else {
-        onResolve(this.actResult);
+    if (!action) {
+      throw new Error("required action to be defined");
+    }
+    this.step(async context => {
+      const scene = context.getScene();
+      if (!scene) {
+        throw new Error(`cannot perform action "${action}, scene is not setup`);
       }
+      if (!scene[action]) {
+        const sceneName = getSceneName(scene);
+        throw new Error(
+          `action "${action}" is missing in scene "${sceneName}"`
+        );
+      }
+      this.log(`action "${action}" on scene "${getSceneName(scene)}"`);
+      await scene[action](context.keyValueContext, ...args);
     });
     return this;
   }
 
-  finally(callback) {
-    this.act(() => callback());
+  assert(callback, { assertionsCount = 1 } = {}) {
+    this.step(context => {
+      this.log(`assertion for scene "${getSceneName(context.getScene())}"`);
+      return callback({
+        page: context.getPage(),
+        scene: context.getScene(),
+        context: context.keyValueContext
+      });
+    });
+    this.assertionsCount += assertionsCount;
     return this;
   }
 
-  async play() {
-    const callAction = (actionName, ...args) => {
-      let errorMsg;
-      if (!this.currentScene?.[actionName]) {
-        const sceneName = getSceneName(this.currentScene);
-        errorMsg = !this.currentScene
-          ? `currentScene is no setup`
-          : `${sceneName} doesn't have action ${actionName}`;
-        return Promise.reject(new Error(errorMsg));
-      }
-      return this.currentScene[actionName](...args);
-    };
+  async play({ page = global.page } = {}) {
+    expect.assertions(this.assertionsCount);
+
+    const context = new ScenarioContext();
+    context.setPage(page);
+
     /* eslint-disable no-await-in-loop */
-    for (let actIndex = 0; actIndex < this.acts.length; actIndex += 1) {
-      const { action, args } = this.acts[actIndex];
-
-      const promise =
-        typeof action === "function"
-          ? action(this.currentScene, ...args)
-          : callAction(action, ...args);
+    for (; this.stepIndex < this.steps.length; this.stepIndex += 1) {
+      const step = this.steps[this.stepIndex];
 
       try {
-        this.actResult = await promise;
-        this.actError = null;
+        await step(context);
       } catch (error) {
-        this.actResult = null;
-        this.actError = error;
+        context.set("error", error);
+        break;
       }
     }
+
+    const lastError = context.get("error");
+    if (lastError) {
+      throw lastError;
+    }
+
+    return context.keyValueContext;
     /* eslint-enable no-await-in-loop */
   }
 }
 
 function getSceneName(scene) {
-  return scene?.constructor?.name || "current scene";
+  return scene?.constructor?.name || (scene ? "unknown scene" : "no scene");
 }

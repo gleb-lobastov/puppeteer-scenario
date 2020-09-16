@@ -1,2 +1,1 @@
-import Scenario from "./Scenario";
-export default Scenario;
+export { default as Scenario } from "./Scenario";
