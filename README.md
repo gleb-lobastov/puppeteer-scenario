@@ -6,32 +6,39 @@
 
 ## Description
 
-Allow writing declarative and reusable scenarios for tests in puppeteer in AAA (Arrange-Act-Assert) pattern.
+Allow writing declarative and reusable scenarios for tests in puppeteer in AAA [(Arrange-Act-Assert)](https://github.com/testdouble/contributing-tests/wiki/Arrange-Act-Assert) pattern.
 
-Idea is, that tests decomposed to high-level "scenario" part, where described intentions. And low-level "scenes", where is the actual call to puppeteer is made
+Idea is, that tests decomposed into two parts. High-level "scenario" part, where intentions are described. And low-level "scenes", where the actual puppeteer manipulations are performed
 
 ## Example
 
 [Check example](./test/__tests__/test-Scenario.js)
+[Check example](./test/scenes/JestScene.js)
 
 ## Usage
 
 ```javascript
 import Scenario from "puppeteer-scenario";
 
-new Scenario("scenarioNameForLogs")
-  .include("...")
-  .arrange("...")
-  .act("...")
-  .assert("...")
-  .play("...");
+describe("MyScenario", () => {
+  it("should behave well", () => {
+    return new Scenario("nameForLogs")
+      .include("...")
+
+      .arrange("...")
+      .act("...")
+      .assert("...")
+
+      .play("...");
+  });
+});
 ```
 
 ## API
 
-`include(otherScenario)` — copies all steps of other scenario to the current one (after position where it included). Useful to include authorization steps. Other scenario remains unchanged
+`include(otherScenario)` — copy all steps from other scenario to the current one (in place of the current step). Useful to include authorization steps. The other scenario remains unchanged
 
-`arrange(options)` — prepare test:
+`arrange(options)` — prepare page for test
 
 available options:
 
@@ -65,10 +72,10 @@ available options:
 
 ## Scene
 
-Scene is a class written by users of the library, that has such structure:
+Scene is a representation of an application page (a view, not a puppeteer one) in the form of a class written by users of the library. Scene has such structure:
 
 ```javascript
-export default class JestScene {
+export default class MyScene {
   constructor(page) {
     // Assumed, that scene instance is always used with same page
     this.page = page;
@@ -77,7 +84,7 @@ export default class JestScene {
   // optional method, if present, will be called automatically after arrange call with new Scene in scenario
   async arrange(sceneProperties) {}
 
-  async customMethod(context, ...actionArgs) {
+  async myMethod(context, ...actionArgs) {
     // use this.page to execute puppeteer commands here
   }
 }

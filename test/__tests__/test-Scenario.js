@@ -1,17 +1,19 @@
 import "regenerator-runtime";
 import puppeteer from "puppeteer";
 import Scenario from "../../src/Scenario";
-import JestScene from "../scenes/JestScene";
+import jestScenario from "../scenarios/jestScenario";
+import puppeteerScenario from "../scenarios/puppeteerScenario";
 import PuppeteerScene from "../scenes/PuppeteerScene";
 
 let browser;
 let page;
 beforeAll(async () => {
-  browser = await puppeteer.launch({
-    // headless: false,
-    // slowMo: 50,
-    // devtools: true
-  });
+  const debugConfig = {
+    headless: false,
+    slowMo: 50,
+    devtools: true
+  };
+  browser = await puppeteer.launch(process.env.DEBUG ? debugConfig : {});
   page = await browser.newPage();
 });
 
@@ -19,26 +21,23 @@ afterAll(async () => {
   await browser.close();
 });
 
-const jestScenario = new Scenario("jest")
-  .arrange({ scene: JestScene, url: "https://github.com/facebook/jest" })
-  .act("collectIssues")
-  .assert(({ context }) => {
-    expect(context.get("jestIssues")).toBeLessThan(1500);
-  });
+describe("scenarios", () => {
+  it("should provide API for AAA (Arrange-Act-Assert) testing pattern", () => {
+    return new Scenario("default")
+      .arrange({
+        scene: PuppeteerScene,
+        url: "https://github.com/puppeteer/puppeteer"
+      })
+      .act("clickOnIssuesPageLink")
+      .assert(async ({ page }) => {
+        const windowUrl = await page.evaluate(() => window.location.href);
+        expect(windowUrl).toBe("https://github.com/puppeteer/puppeteer/issues");
+      })
+      .play({ page });
+  }, 30000);
 
-const puppeteerScenario = new Scenario("puppeteer")
-  .arrange({
-    scene: PuppeteerScene,
-    url: "https://github.com/puppeteer/puppeteer"
-  })
-  .act("collectIssues")
-  .assert(({ context }) => {
-    expect(context.get("puppeteerIssues")).toBeLessThan(1500);
-  });
-
-describe("Scenario", () => {
-  it("should have not too much issues", () => {
-    return new Scenario("both")
+  it("should be able to include other scenarios", () => {
+    return new Scenario("withInclusions")
       .include(jestScenario)
       .include(puppeteerScenario)
       .assert(async ({ page }) => {

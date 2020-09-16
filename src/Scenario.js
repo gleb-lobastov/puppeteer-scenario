@@ -10,7 +10,9 @@ export default class Scenario {
   }
 
   log(message) {
-    console.log(`Scenario "${this.name}":`, message);
+    if (process.env.DEBUG) {
+      console.log(`Scenario "${this.name}":`, message);
+    }
   }
 
   step(action) {

@@ -1,4 +1,4 @@
-export default class JestScene {
+export default class PuppeteerScene {
   constructor(page) {
     this.page = page;
   }
@@ -11,5 +11,11 @@ export default class JestScene {
     if (title) {
       context.set("puppeteerIssues", parseInt(title.replace(",", "")));
     }
+  }
+
+  async clickOnIssuesPageLink() {
+    const issuesButton = await this.page.$('[data-content="Issues"]');
+    await issuesButton.click();
+    await this.page.waitForNavigation({ waitUntil: "networkidle2" });
   }
 }
