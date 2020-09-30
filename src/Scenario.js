@@ -3,6 +3,15 @@ import getSceneName from "./utils/getSceneName";
 import ScenarioContext from "./ScenarioContext";
 
 export default class Scenario {
+  static preset(presetOptions) {
+    return function PresetScenario(options) {
+      return new Scenario({
+        ...presetOptions,
+        ...options
+      });
+    };
+  }
+
   constructor({
     name = "unnamed scenario",
     screenshot = { takeScreenshot: false },
