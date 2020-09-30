@@ -87,7 +87,7 @@ export default class Scenario {
       // scene should setup interceptions before url, because it could intercept following requests
       if (scene?.intercept) {
         this.log(`setup scene interceptions "${getSceneName(scene)}"`);
-        const sceneInterceptionRules = scene.intercept();
+        const sceneInterceptionRules = scene.intercept;
         await context.updateInterceptionRules({
           scene: sceneInterceptionRules
         });

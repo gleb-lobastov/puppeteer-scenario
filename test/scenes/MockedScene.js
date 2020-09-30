@@ -3,15 +3,13 @@ export default class MockedScene {
     this.page = page;
   }
 
-  intercept() {
-    return {
-      "https://google.com/api/request/": () => ({
-        content: "application/json",
-        headers: { "Access-Control-Allow-Origin": "*" },
-        body: JSON.stringify({ value: "world" })
-      })
-    };
-  }
+  intercept = {
+    "https://google.com/api/request/": () => ({
+      content: "application/json",
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: JSON.stringify({ value: "world" })
+    })
+  };
 
   async mockedRequest() {
     await this.page.evaluate(() => {
