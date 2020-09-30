@@ -51,9 +51,16 @@ export default class Scenario {
     page,
     url,
     intercept: globalInterceptionRules,
+    context: contextValuesToSet,
     ...sceneProperties
   }) {
     this.step(async context => {
+      if (contextValuesToSet) {
+        Object.entries(contextValuesToSet).forEach(([key, value]) =>
+          context.set(key, value)
+        );
+      }
+
       if (page) {
         this.log("arrange page");
         await context.setPage(page);
