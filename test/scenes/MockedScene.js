@@ -1,4 +1,4 @@
-export default class PuppeteerScene {
+export default class MockedScene {
   constructor(page) {
     this.page = page;
   }
