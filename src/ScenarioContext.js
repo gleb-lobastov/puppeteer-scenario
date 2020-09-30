@@ -74,8 +74,11 @@ export default class ScenarioContext {
         let isIntercepted = false;
         for (const [path, rule] of Object.entries(interceptionRules)) {
           if (compareUrl(request.url(), path)) {
-            isIntercepted = true;
-            request.respond(rule(this.keyValueContext));
+            const response = rule(request, this.keyValueContext);
+            if (response !== null && response !== undefined) {
+              isIntercepted = true;
+              request.respond(response);
+            }
             break;
           }
         }
