@@ -4,7 +4,7 @@ export default class ScenarioContext {
     this.options = options;
     this.scene = null;
     this.interceptionRules = { global: {}, scene: {} };
-    this.pagesWithInterception = [];
+    this.pagesWithInterception = new WeakSet();
     this.keyValueContext = {
       store: {},
       get(key) {
@@ -53,10 +53,10 @@ export default class ScenarioContext {
     const { compareUrl } = this.options;
     const page = this.getPage();
 
-    if (this.pagesWithInterception.includes(page)) {
+    if (this.pagesWithInterception.has(page)) {
       return;
     }
-    this.pagesWithInterception.push(page);
+    this.pagesWithInterception.add(page);
 
     await page.setRequestInterception(true);
     await page.on("request", request => {
