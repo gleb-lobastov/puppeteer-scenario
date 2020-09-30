@@ -6,6 +6,7 @@ import Scenario from "../../src";
 import jestScenario from "../scenarios/jestScenario";
 import puppeteerScenario from "../scenarios/puppeteerScenario";
 import PuppeteerScene from "../scenes/PuppeteerScene";
+import MockedScene from "../scenes/MockedScene";
 
 let browser;
 let page;
@@ -80,5 +81,27 @@ describe("scenarios", () => {
         fs.unlinkSync(SCREENSHOT_FILE_NAME);
       }
     }
+  }, 30000);
+
+  it("should intercept requests", () => {
+    return new Scenario({ name: "withInterceptions" })
+      .arrange({
+        scene: MockedScene,
+        url: "https://google.com/",
+        intercept: {
+          "https://google.com/": () => ({
+            content: "text/html",
+            headers: { "Access-Control-Allow-Origin": "*" },
+            body: "<html><body>Hello</body></html>"
+          })
+        }
+      })
+      .act("mockedRequest")
+      .assert(async ({ page }) => {
+        const bodyHandle = await page.$("body");
+        const html = await page.evaluate(body => body.innerHTML, bodyHandle);
+        expect(html).toBe("Hello world");
+      })
+      .play({ page });
   }, 30000);
 });

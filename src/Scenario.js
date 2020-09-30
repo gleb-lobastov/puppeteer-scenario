@@ -5,7 +5,8 @@ import ScenarioContext from "./ScenarioContext";
 export default class Scenario {
   constructor({
     name = "unnamed scenario",
-    screenshot = { takeScreenshot: false }
+    screenshot = { takeScreenshot: false },
+    compareUrl = Object.is
   } = {}) {
     this.name = name;
     this.steps = [];
@@ -15,12 +16,13 @@ export default class Scenario {
       screenshot === true
         ? { takeScreenshot: true }
         : { takeScreenshot: true, ...screenshot };
+    this.contextOptions = { compareUrl };
     return this;
   }
 
-  log(message) {
+  log(message, ...args) {
     if (process.env.DEBUG_PUPPETEER_SCENARIO) {
-      console.log(`Scenario "${this.name}":`, message);
+      console.log(`Scenario "${this.name}":`, message, ...args);
     }
   }
 
@@ -35,24 +37,55 @@ export default class Scenario {
     return this;
   }
 
-  arrange({ scene: Scene, page, url, ...sceneProperties }) {
+  arrange({
+    scene: Scene,
+    page,
+    url,
+    intercept: globalInterceptionRules,
+    ...sceneProperties
+  }) {
     this.step(async context => {
       if (page) {
         this.log("arrange page");
         await context.setPage(page);
       }
       const currentPage = page || context.getPage();
+
+      // interceptions should be applied after page, because they applied to currentPage and irrelevant for previous one
+      // interceptions should be applied before url, because it could intercept following requests
+      if (globalInterceptionRules) {
+        this.log(`setup global interceptions`);
+        await context.updateInterceptionRules({
+          global: globalInterceptionRules
+        });
+      }
+
+      const scene = Scene
+        ? new Scene(currentPage, context.keyValueContext)
+        : null;
+
+      if (scene) {
+        context.setScene(scene);
+      }
+
+      // scene should setup interceptions before url, because it could intercept following requests
+      if (scene?.intercept) {
+        this.log(`setup scene interceptions "${getSceneName(scene)}"`);
+        const sceneInterceptionRules = scene.intercept();
+        await context.updateInterceptionRules({
+          scene: sceneInterceptionRules
+        });
+      }
+
       if (url) {
         this.log("arrange url", url, Boolean(currentPage));
         await currentPage.goto(url, { waitUntil: "networkidle2" });
       }
-      if (Scene) {
-        const scene = new Scene(currentPage, context.keyValueContext);
+
+      // scene should be arranged after url, because it could expect page to load during arrangement
+      if (scene?.arrange) {
         this.log(`arrange scene "${getSceneName(scene)}"`);
-        context.setScene(scene);
-        if (scene.arrange) {
-          await scene.arrange(sceneProperties);
-        }
+        await scene.arrange(sceneProperties);
       }
     });
     return this;
@@ -97,8 +130,7 @@ export default class Scenario {
       expect.assertions(this.assertionsCount);
     }
 
-    const context = new ScenarioContext();
-    context.setPage(page);
+    const context = new ScenarioContext(page, this.contextOptions);
 
     /* eslint-disable no-await-in-loop */
     for (; this.stepIndex < this.steps.length; this.stepIndex += 1) {
