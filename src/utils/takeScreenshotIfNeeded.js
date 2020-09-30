@@ -27,7 +27,7 @@ export default function takeScreenshotIfNeeded(
 
   const dirname = path.dirname(screenshotPath);
   if (!fs.existsSync(dirname)) {
-    fs.mkdirSync(dirname);
+    fs.mkdirSync(dirname, { recursive: true });
   }
 
   return context.getPage().screenshot({
