@@ -15,7 +15,8 @@ export default class Scenario {
   constructor({
     name = "unnamed scenario",
     screenshot = { takeScreenshot: false },
-    compareUrl = Object.is
+    compareUrl = (requestUrl, referenceUrl) =>
+      new RegExp(referenceUrl).test(requestUrl)
   } = {}) {
     this.name = name;
     this.steps = [];
