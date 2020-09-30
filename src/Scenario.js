@@ -1,11 +1,20 @@
+import takeScreenshotIfNeeded from "./utils/takeScreenshotIfNeeded";
+import getSceneName from "./utils/getSceneName";
 import ScenarioContext from "./ScenarioContext";
 
 export default class Scenario {
-  constructor(name) {
+  constructor({
+    name = "unnamed scenario",
+    screenshot = { takeScreenshot: false }
+  } = {}) {
     this.name = name;
     this.steps = [];
     this.assertionsCount = 0;
     this.stepIndex = 0;
+    this.screenshotOptions =
+      screenshot === true
+        ? { takeScreenshot: true }
+        : { takeScreenshot: true, ...screenshot };
     return this;
   }
 
@@ -38,7 +47,7 @@ export default class Scenario {
         await currentPage.goto(url, { waitUntil: "networkidle2" });
       }
       if (Scene) {
-        const scene = new Scene(currentPage);
+        const scene = new Scene(currentPage, context.keyValueContext);
         this.log(`arrange scene "${getSceneName(scene)}"`);
         context.setScene(scene);
         if (scene.arrange) {
@@ -84,7 +93,9 @@ export default class Scenario {
   }
 
   async play({ page = global.page } = {}) {
-    expect.assertions(this.assertionsCount);
+    if (this.assertionsCount) {
+      expect.assertions(this.assertionsCount);
+    }
 
     const context = new ScenarioContext();
     context.setPage(page);
@@ -97,6 +108,7 @@ export default class Scenario {
         await step(context);
       } catch (error) {
         context.set("error", error);
+        await takeScreenshotIfNeeded(this, context, this.screenshotOptions);
         break;
       }
     }
@@ -109,8 +121,4 @@ export default class Scenario {
     return context.keyValueContext;
     /* eslint-enable no-await-in-loop */
   }
-}
-
-function getSceneName(scene) {
-  return scene?.constructor?.name || (scene ? "unknown scene" : "no scene");
 }
