@@ -21,7 +21,7 @@ import Scenario from "puppeteer-scenario";
 
 describe("MyScenario", () => {
   it("should behave well", () => {
-    return new Scenario("nameForLogs")
+    return new Scenario({ name: "nameForLogs" })
       .include("...")
 
       .arrange("...")
@@ -32,6 +32,26 @@ describe("MyScenario", () => {
   });
 });
 ```
+
+**constructor options:**
+
+| option name | default value                             | description                                           |
+| ----------- | ----------------------------------------- | ----------------------------------------------------- |
+| name        | — (required)                              | scenario name to show in logs                         |
+| screenshot  | { takeScreenshot:false }                  | screenshotOptions to configure on-failure screenshots |
+| compareUrl  | new RegExp(referenceUrl).test(requestUrl) | see interception section                              |
+
+**screenshotOptions:**
+
+Has shortcut: true, equals to { takeScreenshot:true }
+
+| name           | default value              | description                                                   |
+| -------------- | -------------------------- | ------------------------------------------------------------- |
+| takeScreenshot | true                       | if false, screenshot will not be taken                        |
+| pathResolver   | see default filename below | signature: pathResolver(context, { scenarioName, sceneName }) |
+| ...rest        | {}                         | options that passed to puppeteer page.screenshot(options)     |
+
+Default file name for screenshots: .screenshots/${scenarioName}__${sceneName}\_\_\${uniqKey}.png
 
 ## API
 
@@ -50,6 +70,8 @@ describe("MyScenario", () => {
 | page               | —             | update current puppeteer page, if provided                       |
 | url                | —             | navigate to url, if provided                                     |
 | scene              | —             | setup current scene, if provided (see Scene section for details) |
+| intercept          | —             | global interception rules, see Interception section              |
+| context            | —             | object of key/value pairs to populate scenario context           |
 | ...sceneProperties | {}            | params that forwarder to Scene instance arrange method           |
 
 ### act
@@ -90,6 +112,12 @@ export default class MyScene {
     this.page = page;
   }
 
+  intercept = {
+    regexp: context => ({
+      /* puppeteer response https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#httprequestrespondresponse */
+    })
+  };
+
   // optional method, if present, will be called automatically after arrange call with new Scene in scenario
   async arrange(sceneProperties) {}
 
@@ -100,3 +128,47 @@ export default class MyScene {
 ```
 
 [Check example](./test/scenes/JestScene.js)
+
+## Context
+
+Context is key-value in-memory storage, that could be used to pass some data through steps
+
+## Interception
+
+puppeteer-scenario use puppeteer page "request" event to subscribe and intercept requests. The usual purposes is to mock requests, or to simulate erroneous response
+
+interceptions could be set by passing interceptions config in two ways:
+
+1. "global" for the scenario, through .arrange({ intercept }) parameter. Interceptions added this way will work till the scenario end, if not overridden by further ones with the same keys. I.e. each next "global" config will be merged into existing
+2. "local" for the scene. This interceptions is set in scene instance "intercept" field (see scene example). And works only for the scene where it was set. After scene change, such interceptions will be removed. I.e. each next "local" config will be substitute existing one
+
+"local" interceptions have precedence over "global"
+
+interceptions config is object, which keys is representing url and values:
+
+```javascript
+const interceptionsConfig = {
+  "/api/request/": function interceptionFn(
+    // https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#class-httprequest
+    request,
+    // puppeteer-scenario context, see "context" section
+    context
+  ) {
+    return {
+      content: "application/json",
+      headers: { "Access-Control-Allow-Origin": "*" },
+      body: JSON.stringify({ value: 32 })
+      // ...response
+      // https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#httprequestrespondresponse
+    };
+  }
+};
+```
+
+interception will be **ignored** if the function returns a null or undefined value
+
+interception keys by default is treated as regexp, used to compare with requested urls:
+
+(requestUrl, referenceUrl) => new RegExp(referenceUrl).test(requestUrl),
+
+This behavior could be overridden by compareUrl param in Scenario constructor
