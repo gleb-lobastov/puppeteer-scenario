@@ -124,7 +124,7 @@ export default class Scenario {
         );
       }
       this.log(`action "${action}" on scene "${getSceneName(scene)}"`);
-      await scene[action](context.keyValueContext, ...args);
+      await scene[action](...args);
     });
     return this;
   }
