@@ -129,6 +129,9 @@ export default class MyScene {
 
 [Check example](./test/scenes/JestScene.js)
 
+Library also exports a very simple Scene class, that just assign page and context fields in constructor. It possible to inherit Scenes from it, but not required.
+[Source](./src/Scene.js)
+
 ## Context
 
 Context is key-value in-memory storage, that could be used to pass some data through steps
