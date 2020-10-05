@@ -1,8 +1,6 @@
-export default class MockedScene {
-  constructor(page) {
-    this.page = page;
-  }
+import { Scene } from "../../src";
 
+export default class MockedScene extends Scene {
   intercept = {
     "https://google.com/api/request/": () => ({
       content: "application/json",
@@ -17,7 +15,7 @@ export default class MockedScene {
         .fetch("/api/request/")
         .then(response => response.json())
         .then(({ value }) => {
-          document.body.innerHTML += ` ${value}`;
+          window.document.body.innerHTML += ` ${value}`;
         });
     });
   }

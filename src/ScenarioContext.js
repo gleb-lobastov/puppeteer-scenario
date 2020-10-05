@@ -1,19 +1,12 @@
+import Interceptor from "./Interceptor";
+
 export default class ScenarioContext {
-  constructor(page, options) {
+  constructor(page, { interceptorOptions, ...options } = {}) {
     this.page = page;
     this.options = options;
     this.scene = null;
-    this.interceptionRules = { global: {}, scene: {} };
-    this.pagesWithInterception = new WeakSet();
-    this.keyValueContext = {
-      store: {},
-      get(key) {
-        return this.store[key];
-      },
-      set(key, value) {
-        this.store[key] = value;
-      }
-    };
+    this.interceptor = new Interceptor(interceptorOptions);
+    this.keyValueContext = createKeyValueContext();
   }
 
   get(key) {
@@ -28,9 +21,10 @@ export default class ScenarioContext {
     return this.page;
   }
 
-  async setPage(page) {
+  setPage(page) {
     this.page = page;
-    await this.setRequestInterceptionOnce();
+    this.setScene(null);
+    return this.interceptor.updatePage(page);
   }
 
   getScene() {
@@ -41,54 +35,22 @@ export default class ScenarioContext {
     this.scene = scene;
   }
 
-  async updateInterceptionRules({ global, scene }) {
-    this.interceptionRules = {
-      global: { ...this.interceptionRules.global, ...global },
-      scene: scene ?? this.interceptionRules.scene
-    };
-    await this.setRequestInterceptionOnce();
+  updateInterceptionRules(interceptionRules) {
+    return this.interceptor.updateInterceptionRules(
+      this.getPage(),
+      interceptionRules
+    );
   }
+}
 
-  async setRequestInterceptionOnce() {
-    const { compareUrl } = this.options;
-    const page = this.getPage();
-
-    if (this.pagesWithInterception.has(page)) {
-      return;
+function createKeyValueContext() {
+  const store = {};
+  return {
+    get(key) {
+      return store[key];
+    },
+    set(key, value) {
+      store[key] = value;
     }
-    this.pagesWithInterception.add(page);
-
-    await page.setRequestInterception(true);
-    await page.on("request", request => {
-      const {
-        global: globalInterceptionRules,
-        scene: sceneInterceptionRules
-      } = this.interceptionRules;
-
-      const interceptionRules = {
-        ...globalInterceptionRules,
-        ...sceneInterceptionRules
-      };
-
-      try {
-        let isIntercepted = false;
-        for (const [path, rule] of Object.entries(interceptionRules)) {
-          if (compareUrl(request.url(), path)) {
-            const response = rule(request, this.keyValueContext);
-            if (response !== null && response !== undefined) {
-              isIntercepted = true;
-              request.respond(response);
-            }
-            break;
-          }
-        }
-
-        if (!isIntercepted) {
-          request.continue();
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    });
-  }
+  };
 }

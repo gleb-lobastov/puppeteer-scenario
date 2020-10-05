@@ -12,7 +12,7 @@ Idea is, that tests decomposed into two parts. High-level "scenario" part, where
 
 ## Example
 
-[Check example](./test/__tests__/test-Scenario.js)
+[Check example](examples/__tests__/test-ScenarioExamples.js)
 
 ## Usage
 
@@ -127,7 +127,7 @@ export default class MyScene {
 }
 ```
 
-[Check example](./test/scenes/JestScene.js)
+[Check example](examples/scenes/JestScene.js)
 
 Library also exports a very simple Scene class, that just assign page and context fields in constructor. It possible to inherit Scenes from it, but not required.
 [Source](./src/Scene.js)

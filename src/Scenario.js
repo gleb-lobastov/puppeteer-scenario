@@ -15,8 +15,7 @@ export default class Scenario {
   constructor({
     name = "unnamed scenario",
     screenshot = { takeScreenshot: false },
-    compareUrl = (requestUrl, referenceUrl) =>
-      new RegExp(referenceUrl).test(requestUrl)
+    compareUrl
   } = {}) {
     this.name = name;
     this.steps = [];
@@ -26,12 +25,13 @@ export default class Scenario {
       screenshot === true
         ? { takeScreenshot: true }
         : { takeScreenshot: true, ...screenshot };
-    this.contextOptions = { compareUrl };
+    this.contextOptions = { interceptorOptions: { compareUrl } };
     return this;
   }
 
   log(message, ...args) {
     if (process.env.DEBUG_PUPPETEER_SCENARIO) {
+      // eslint-disable-next-line no-console
       console.log(`Scenario "${this.name}":`, message, ...args);
     }
   }

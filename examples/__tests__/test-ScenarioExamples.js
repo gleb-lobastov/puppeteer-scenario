@@ -2,7 +2,7 @@ import "regenerator-runtime";
 import path from "path";
 import fs from "fs";
 import puppeteer from "puppeteer";
-import Scenario from "../../src";
+import { Scenario } from "../../src";
 import jestScenario from "../scenarios/jestScenario";
 import puppeteerScenario from "../scenarios/puppeteerScenario";
 import PuppeteerScene from "../scenes/PuppeteerScene";
@@ -34,7 +34,7 @@ describe("scenarios", () => {
         url: "https://github.com/puppeteer/puppeteer"
       })
       .act("clickOnIssuesPageLink")
-      .assert(async ({ page }) => {
+      .assert(async () => {
         const windowUrl = await page.evaluate(() => window.location.href);
         expect(windowUrl).toBe("https://github.com/puppeteer/puppeteer/issues");
       })
@@ -45,7 +45,7 @@ describe("scenarios", () => {
     return new Scenario({ name: "withInclusions" })
       .include(jestScenario)
       .include(puppeteerScenario)
-      .assert(async ({ page }) => {
+      .assert(async () => {
         const ariaLabel = await page.$eval(
           "[href*=stargazers]",
           element => element.ariaLabel
@@ -89,15 +89,14 @@ describe("scenarios", () => {
         scene: MockedScene,
         url: "https://google.com/",
         intercept: {
-          "https://google.com/": () => ({
-            content: "text/html",
-            headers: { "Access-Control-Allow-Origin": "*" },
-            body: "<html><body>Hello</body></html>"
+          "https://google.com/$": () => ({
+            contentType: "text/html",
+            body: '<html lang="en"><body>Hello</body></html>'
           })
         }
       })
       .act("mockedRequest")
-      .assert(async ({ page }) => {
+      .assert(async () => {
         const bodyHandle = await page.$("body");
         const html = await page.evaluate(body => body.innerHTML, bodyHandle);
         expect(html).toBe("Hello world");

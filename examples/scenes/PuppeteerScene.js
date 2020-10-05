@@ -1,15 +1,13 @@
-export default class PuppeteerScene {
-  constructor(page) {
-    this.page = page;
-  }
+import { Scene } from "../../src";
 
-  async collectIssues(context) {
+export default class PuppeteerScene extends Scene {
+  async collectIssues() {
     const title = await this.page.$eval(
       '[data-content="Issues"] + span.Counter',
       element => element.title
     );
     if (title) {
-      context.set("puppeteerIssues", parseInt(title.replace(",", "")));
+      this.context.set("puppeteerIssues", parseInt(title.replace(",", ""), 10));
     }
   }
 

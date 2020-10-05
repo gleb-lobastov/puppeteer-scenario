@@ -1,10 +1,8 @@
+import { Scene } from "../../src";
+
 const JEST_GITHUB_URL = "https://github.com/facebook/jest";
 
-export default class JestScene {
-  constructor(page) {
-    this.page = page;
-  }
-
+export default class JestScene extends Scene {
   async arrange() {
     const windowUrl = await this.page.evaluate(() => window.location.href);
     if (windowUrl !== JEST_GITHUB_URL) {
@@ -12,13 +10,13 @@ export default class JestScene {
     }
   }
 
-  async collectIssues(context) {
+  async collectIssues() {
     const title = await this.page.$eval(
       '[data-content="Issues"] + span.Counter',
       element => element.title
     );
     if (title) {
-      context.set("jestIssues", parseInt(title.replace(",", "")));
+      this.context.set("jestIssues", parseInt(title.replace(",", ""), 10));
     }
   }
 }

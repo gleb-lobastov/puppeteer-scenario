@@ -1,7 +1,28 @@
 {
   "extends": ["airbnb", "prettier"],
-  "env": { "es6": true, "jest": true },
+  "plugins": ["import", "jest"],
+  "env": {
+    "es6": true,
+    "jest/globals": true
+  },
+  "globals": {
+    "window": true
+  },
   "parser": "babel-eslint",
-  "parserOptions": { "ecmaVersion": 6, "sourceType": "module" },
-  "plugins": ["import"]
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-restricted-syntax": [
+      "error",
+      "ForInStatement",
+      "LabeledStatement",
+      "WithStatement"
+    ],
+    "no-use-before-define": [
+      "error",
+      { "functions": false, "classes": false, "variables": true }
+    ]
+  }
 }

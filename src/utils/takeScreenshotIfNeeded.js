@@ -14,7 +14,7 @@ export default function takeScreenshotIfNeeded(
   } = screenshotOptions;
 
   if (!takeScreenshot) {
-    return;
+    return null;
   }
 
   const scenarioName = scenario.name;
@@ -22,7 +22,7 @@ export default function takeScreenshotIfNeeded(
   const screenshotPath = pathResolver(context, { scenarioName, sceneName });
 
   if (!screenshotPath) {
-    return;
+    return null;
   }
 
   const dirname = path.dirname(screenshotPath);
