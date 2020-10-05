@@ -15,7 +15,7 @@ Idea is, that tests decomposed into two parts. High-level "scenario" part, where
 ```javascript
 describe("user scenarios", () => {
   it("should login, create trip, visits and rides", async () => {
-    await new Scenario(page)
+    return new Scenario(page)
       .arrange({
         scene: LoginScene,
         url: "http://localhost:8080/mine/hello"
@@ -42,8 +42,6 @@ describe("user scenarios", () => {
       .act("createRide")
 
       .play();
-
-    await browser.close();
   });
 });
 
