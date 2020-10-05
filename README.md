@@ -40,6 +40,14 @@ describe("user scenarios", () => {
       .act("createRide")
       .act("createRide")
       .act("createRide")
+      .assert(async () => {
+        expect(
+          await page.$$(toSelector(tripEditPageLocators.VISIT_BLOCK))
+        ).toHaveLength(2);
+        expect(
+          await page.$$(toSelector(tripEditPageLocators.RIDE_BLOCK))
+        ).toHaveLength(3);
+      })
 
       .play();
   });
