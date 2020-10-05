@@ -138,16 +138,16 @@ Context is key-value in-memory storage, that could be used to pass some data thr
 
 ## Interception
 
-puppeteer-scenario use puppeteer page "request" event to subscribe and intercept requests. The usual purposes is to mock requests, or to simulate erroneous response
+puppeteer-scenario use puppeteer page "request" event to subscribe and intercept requests. The usual purposes are to mock requests or to simulate the erroneous response
 
 interceptions could be set by passing interceptions config in two ways:
 
 1. "global" for the scenario, through .arrange({ intercept }) parameter. Interceptions added this way will work till the scenario end, if not overridden by further ones with the same keys. I.e. each next "global" config will be merged into existing
-2. "local" for the scene. This interceptions is set in scene instance "intercept" field (see scene example). And works only for the scene where it was set. After scene change, such interceptions will be removed. I.e. each next "local" config will be substitute existing one
+2. "local" for the scene. These interceptions are set in scene instance "intercept" field (see scene example). And works only for the scene where it was set. After scene change, such interceptions will be removed. I.e. each next "local" config will be substitute existing one
 
 "local" interceptions have precedence over "global"
 
-interceptions config is object, which keys is representing url and values:
+interceptions config is an object, which keys is representing URL and values:
 
 ```javascript
 const interceptionsConfig = {
@@ -174,4 +174,4 @@ interception keys by default is treated as regexp, used to compare with requeste
 
 (requestUrl, referenceUrl) => new RegExp(referenceUrl).test(requestUrl),
 
-This behavior could be overridden by compareUrl param in Scenario constructor
+This behavior could be overridden by `compareUrl` param in Scenario constructor
