@@ -12,7 +12,62 @@ Idea is, that tests decomposed into two parts. High-level "scenario" part, where
 
 ## Example
 
-[Check example](examples/__tests__/test-ScenarioExamples.js)
+```javascript
+describe("user scenarios", () => {
+  it("should login, create trip, visits and rides", async () => {
+    await new Scenario(page)
+      .arrange({
+        scene: LoginScene,
+        url: "http://localhost:8080/mine/hello"
+      })
+      .act("login", {
+        login: process.env.TEST_LOGIN,
+        password: process.env.TEST_PASSWORD
+      })
+      .assert(() =>
+        expect(page.evaluate(() => window.isAuthenticated)).toBeTruthy()
+      )
+
+      .arrange({ scene: VisitsScene, userLogin: process.env.TEST_LOGIN })
+      .act("clickCreateTrip")
+
+      .arrange({ scene: CreateTripScene })
+      .act("createTrip")
+
+      .arrange({ scene: EditTripScene })
+      .act("createVisit")
+      .act("createVisit")
+      .act("createRide")
+      .act("createRide")
+      .act("createRide")
+
+      .play();
+
+    await browser.close();
+  });
+});
+
+// VisitsScene.js, for example
+export default class VisitsScene extends Scene {
+  async arrange({ userLogin }) {
+    await this.page.goto(
+      `${process.env.APP_ORIGIN}/mine/travel/${userLogin}/visits/trips`,
+      { waitUntil: "networkidle2" }
+    );
+  }
+
+  async clickCreateTrip() {
+    const addTripButtonSelector = toSelector(
+      visitsPageLocators.ADD_TRIP_BUTTON
+    );
+
+    await this.page.waitFor(addTripButtonSelector);
+    await this.page.click(addTripButtonSelector);
+  }
+}
+```
+
+[Check more examples](examples/__tests__/test-ScenarioExamples.js)
 
 ## Usage
 
