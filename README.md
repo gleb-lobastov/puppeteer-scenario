@@ -174,7 +174,7 @@ export default class MyScene {
   }
 
   intercept = {
-    regexp: context => ({
+    regexp: (request, context) => ({
       /* puppeteer response https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#httprequestrespondresponse */
     })
   };
