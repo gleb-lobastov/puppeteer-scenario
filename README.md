@@ -168,13 +168,14 @@ Scene is a representation of an application page (a view, not a puppeteer one) i
 
 ```javascript
 export default class MyScene {
-  constructor(page) {
+  constructor(page, context) {
     // Assumed, that scene instance is always used with same page
     this.page = page;
+    this.context = context;
   }
 
   intercept = {
-    regexp: (request, context) => ({
+    regexp: request => ({
       /* puppeteer response https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#httprequestrespondresponse */
     })
   };
@@ -182,7 +183,7 @@ export default class MyScene {
   // optional method, if present, will be called automatically after arrange call with new Scene in scenario
   async arrange(sceneProperties) {}
 
-  async myMethod(context, ...actionArgs) {
+  async myMethod(...actionArgs) {
     // use this.page to execute puppeteer commands here
   }
 }
