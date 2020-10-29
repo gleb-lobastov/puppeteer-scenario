@@ -2,7 +2,7 @@ import "regenerator-runtime";
 import path from "path";
 import fs from "fs";
 import puppeteer from "puppeteer";
-import { Scenario } from "../../src";
+import { Scenario, evaluate, evalSelector } from "../../src";
 import jestScenario from "../scenarios/jestScenario";
 import puppeteerScenario from "../scenarios/puppeteerScenario";
 import PuppeteerScene from "../scenes/PuppeteerScene";
@@ -33,10 +33,9 @@ describe("scenarios", () => {
         scene: PuppeteerScene,
         url: "https://github.com/puppeteer/puppeteer"
       })
-      .act("clickOnIssuesPageLink")
-      .assert(async () => {
-        const windowUrl = await page.evaluate(() => window.location.href);
-        expect(windowUrl).toBe("https://github.com/puppeteer/puppeteer/issues");
+      .act("openIssuesPage")
+      .assert(evaluate(() => window.location.href), {
+        expect: { toBe: "https://github.com/puppeteer/puppeteer/issues" }
       })
       .play({ page });
   }, 30000);
@@ -45,13 +44,12 @@ describe("scenarios", () => {
     return new Scenario({ name: "withInclusions" })
       .include(jestScenario)
       .include(puppeteerScenario)
-      .assert(async () => {
-        const ariaLabel = await page.$eval(
-          "[href*=stargazers]",
-          element => element.ariaLabel
-        );
-        expect(parseFloat(ariaLabel)).toBeGreaterThan(65000);
-      })
+      .assert(
+        evalSelector("[href*=stargazers]", element =>
+          parseFloat(element.ariaLabel)
+        ),
+        { expect: { toBeGreaterThan: 65000 } }
+      )
       .play({ page });
   }, 30000);
 
@@ -96,11 +94,7 @@ describe("scenarios", () => {
         }
       })
       .act("mockedRequest")
-      .assert(async () => {
-        const bodyHandle = await page.$("body");
-        const html = await page.evaluate(body => body.innerHTML, bodyHandle);
-        expect(html).toBe("Hello world");
-      })
+      .assert("html", { expect: { toBe: "Hello world" } })
       .play({ page });
   }, 30000);
 });

@@ -9,6 +9,13 @@ export default class MockedScene extends Scene {
     })
   };
 
+  evaluate = {
+    html: async () => {
+      const bodyHandle = await this.page.$("body");
+      return this.page.evaluate(body => body.innerHTML, bodyHandle);
+    }
+  };
+
   async mockedRequest() {
     await this.page.evaluate(() => {
       return window

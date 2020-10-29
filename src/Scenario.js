@@ -1,6 +1,8 @@
 import takeScreenshotIfNeeded from "./utils/takeScreenshotIfNeeded";
 import getSceneName from "./utils/getSceneName";
+import objMapAsync from "./utils/objMapAsync";
 import ScenarioContext from "./ScenarioContext";
+import { withPostponedValues } from "./PostponedValue";
 
 export default class Scenario {
   static preset({ arrangeScenario, ...presetOptions }) {
@@ -128,19 +130,78 @@ export default class Scenario {
         );
       }
       this.log(`action "${action}" on scene "${getSceneName(scene)}"`);
-      await scene[action](...args);
+      const sceneActArgs = await withPostponedValues(args, context);
+      await scene[action](...sceneActArgs);
     });
     return this;
   }
 
-  assert(callback, { assertionsCount = 1 } = {}) {
-    this.step(context => {
+  assert(
+    evaluation,
+    {
+      expect: expectations,
+      assertionsCount = expectations ? Object.keys(expectations).length : null,
+      evaluationParams = []
+    } = {}
+  ) {
+    if (assertionsCount === null) {
+      throw new Error(
+        "assertionsCount option should be explicitly set, if expectations is checked manually"
+      );
+    }
+    this.step(async context => {
       this.log(`assertion for scene "${getSceneName(context.getScene())}"`);
-      return callback({
-        page: context.getPage(),
-        scene: context.getScene(),
-        context: context.keyValueContext
-      });
+      let evaluationResult;
+      if (typeof evaluation === "function") {
+        evaluationResult = evaluation({
+          page: context.getPage(),
+          scene: context.getScene(),
+          context: context.keyValueContext
+        });
+      } else if (typeof evaluation === "string") {
+        const scene = context.getScene();
+        if (!scene) {
+          throw new Error(
+            `cannot perform evaluation "${evaluation}, scene is not setup`
+          );
+        }
+        const sceneEvaluation = scene.evaluate?.[evaluation];
+        if (!sceneEvaluation) {
+          const sceneName = getSceneName(scene);
+          throw new Error(
+            `evaluation "${evaluation}" is missing in scene "${sceneName}"`
+          );
+        }
+        this.log(`evaluate "${evaluation}" on scene "${getSceneName(scene)}"`);
+        const sceneEvalArgs = await withPostponedValues(
+          Array.isArray(evaluationParams)
+            ? evaluationParams
+            : [evaluationParams],
+          context
+        );
+        evaluationResult = await sceneEvaluation(...sceneEvalArgs);
+      } else {
+        evaluationResult = evaluation;
+      }
+
+      const evaluatedValue = await withPostponedValues(
+        evaluationResult,
+        context
+      );
+
+      await objMapAsync(
+        Object.entries(expectations ?? {}),
+        async ([expectation, expectedValue]) => {
+          const actualExpectedValue = await withPostponedValues(
+            expectedValue,
+            context
+          );
+          const args = Array.isArray(actualExpectedValue)
+            ? actualExpectedValue
+            : [actualExpectedValue];
+          expect(evaluatedValue)[expectation](...args);
+        }
+      );
     });
     this.assertionsCount += assertionsCount;
     return this;

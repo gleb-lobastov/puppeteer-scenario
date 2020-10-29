@@ -1,9 +1,7 @@
-import Scenario from "../../src/Scenario";
+import { Scenario, contextValue } from "../../src";
 import JestScene from "../scenes/JestScene";
 
 export default new Scenario("jest")
   .arrange({ scene: JestScene })
   .act("collectIssues")
-  .assert(({ context }) => {
-    expect(context.get("jestIssues")).toBeLessThan(1500);
-  });
+  .assert(contextValue("jestIssues"), { expect: { toBeLessThan: 1500 } });

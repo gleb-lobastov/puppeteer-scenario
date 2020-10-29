@@ -16,6 +16,16 @@ export default class PageMock {
 
   close = jest.fn();
 
+  evaluate = jest.fn(evalFn => evalFn());
+
+  $eval = jest.fn((selector, evalFn = value => value) =>
+    evalFn(selector)
+  );
+
+  $$eval = jest.fn((selector, evalFn = value => value) =>
+    evalFn([selector])
+  );
+
   fireEvent(eventName, ...args) {
     const callbacks = this.callbacks[eventName] || [];
     return Promise.all(callbacks.map(callback => callback(...args)));
