@@ -63,6 +63,17 @@ describe("ScenarioContext keyValueContext", () => {
 
     expect(context.get(key)).toBe(value);
   });
+
+  it("should return part of nested value in get method that set in set method", () => {
+    const keyPart = "long.path,for";
+    const lastKeyPart = "anykey";
+    const value = "whatever";
+    const context = new ScenarioContext({});
+
+    context.set(`${keyPart}.${lastKeyPart}`, value);
+
+    expect(context.get(keyPart)).toEqual({ [lastKeyPart]: value });
+  });
 });
 
 describe("ScenarioContext interceptor", () => {

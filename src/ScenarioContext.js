@@ -46,11 +46,25 @@ export default class ScenarioContext {
 function createKeyValueContext() {
   const store = {};
   return {
-    get(key) {
-      return store[key];
+    get(path) {
+      const parts = path.split(".");
+      return parts.reduce(
+        (storePart, pathPart) => storePart?.[pathPart],
+        store
+      );
     },
-    set(key, value) {
-      store[key] = value;
+    set(path, value) {
+      const parts = path.split(".");
+      const key = parts.pop();
+
+      let storePart = store;
+      parts.forEach(part => {
+        if (storePart[part] === undefined) {
+          storePart[part] = {};
+        }
+        storePart = storePart[part];
+      });
+      storePart[key] = value;
     }
   };
 }
