@@ -35,14 +35,14 @@ export default class Interceptor {
         scene: sceneInterceptionRules
       } = this.interceptionRules;
 
-      const interceptionRules = {
-        ...globalInterceptionRules,
-        ...sceneInterceptionRules
-      };
-
       try {
         let isIntercepted = false;
-        for (const [path, rule] of Object.entries(interceptionRules)) {
+        const rules = [
+          // scene rules has precedence over global rules
+          ...Object.entries(sceneInterceptionRules ?? {}),
+          ...Object.entries(globalInterceptionRules ?? {})
+        ];
+        for (const [path, rule] of rules) {
           if (compareUrl(request.url(), path)) {
             const response = rule(request, this.keyValueContext);
             if (response !== null && response !== undefined) {
