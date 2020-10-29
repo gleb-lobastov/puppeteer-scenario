@@ -3,12 +3,16 @@ import getSceneName from "./utils/getSceneName";
 import ScenarioContext from "./ScenarioContext";
 
 export default class Scenario {
-  static preset(presetOptions) {
+  static preset({ arrangeScenario, ...presetOptions }) {
     return function PresetScenario(options) {
-      return new Scenario({
+      const scenario = new Scenario({
         ...presetOptions,
         ...options
       });
+      if (arrangeScenario) {
+        scenario.include(arrangeScenario);
+      }
+      return scenario;
     };
   }
 
