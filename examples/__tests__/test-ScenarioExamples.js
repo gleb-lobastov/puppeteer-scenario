@@ -1,4 +1,3 @@
-import "regenerator-runtime";
 import path from "path";
 import fs from "fs";
 import puppeteer from "puppeteer";

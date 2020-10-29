@@ -1,4 +1,3 @@
-import "regenerator-runtime";
 import Interceptor from "../Interceptor";
 import PageMock from "./mocks/PageMock";
 import RequestMock from "./mocks/RequestMock";

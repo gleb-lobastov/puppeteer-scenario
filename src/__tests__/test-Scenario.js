@@ -1,4 +1,3 @@
-import "regenerator-runtime";
 import Scenario from "../Scenario";
 import SceneMock from "./mocks/SceneMock";
 import PageMock from "./mocks/PageMock";

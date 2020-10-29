@@ -52,6 +52,9 @@
     "rollup-plugin-babel": "^4.4.0"
   },
   "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest-setup.js"
+    ],
     "preset": "jest-puppeteer",
     "testMatch": [
       "**/__tests__/**/test-*.[jt]s?(x)"

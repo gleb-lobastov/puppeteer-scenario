@@ -1,4 +1,3 @@
-import "regenerator-runtime";
 import ScenarioContext from "../ScenarioContext";
 import InterceptorMock from "./mocks/InterceptorMock";
 
