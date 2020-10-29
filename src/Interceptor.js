@@ -29,7 +29,7 @@ export default class Interceptor {
     this.pagesWithInterception.add(page);
 
     await page.setRequestInterception(true);
-    await page.on("request", request => {
+    await page.on("request", async request => {
       const {
         global: globalInterceptionRules,
         scene: sceneInterceptionRules
@@ -44,7 +44,8 @@ export default class Interceptor {
         ];
         for (const [path, rule] of rules) {
           if (compareUrl(request.url(), path)) {
-            const response = rule(request, this.keyValueContext);
+            // eslint-disable-next-line no-await-in-loop
+            const response = await rule(request);
             if (response !== null && response !== undefined) {
               isIntercepted = true;
               request.respond(response);
