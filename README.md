@@ -24,9 +24,9 @@ describe("user scenarios", () => {
         login: process.env.TEST_LOGIN,
         password: process.env.TEST_PASSWORD
       })
-      .assert(() =>
-        expect(page.evaluate(() => window.isAuthenticated)).toBeTruthy()
-      )
+      .assert(evaluate(() => window.isAuthenticated), {
+        expect: { toBe: true }
+      })
 
       .arrange({ scene: VisitsScene, userLogin: process.env.TEST_LOGIN })
       .act("clickCreateTrip")
@@ -40,14 +40,17 @@ describe("user scenarios", () => {
       .act("createRide")
       .act("createRide")
       .act("createRide")
-      .assert(async () => {
-        expect(
-          await page.$$(toSelector(tripEditPageLocators.VISIT_BLOCK))
-        ).toHaveLength(2);
-        expect(
-          await page.$$(toSelector(tripEditPageLocators.RIDE_BLOCK))
-        ).toHaveLength(3);
-      })
+      .assert(
+        async () => {
+          expect(
+            await page.$$(toSelector(tripEditPageLocators.VISIT_BLOCK))
+          ).toHaveLength(2);
+          expect(
+            await page.$$(toSelector(tripEditPageLocators.RIDE_BLOCK))
+          ).toHaveLength(3);
+        },
+        { assertionsCount: 2 }
+      )
 
       .play();
   });
@@ -141,16 +144,40 @@ Default file name for screenshots: .screenshots/${scenarioName}__${sceneName}\_\
 
 ### assert
 
-`assert(callback, options)` — place to make assertions
+`assert(evaluation, options)` — place to make assertions
 
-**callback signature:**
-`({page, scene, context}) => {/*...*/}`
+evaluation could be function (callback), string, object, array or postponedValue
 
 **available options:**
 
-| option name     | default value | description                          |
-| --------------- | ------------- | ------------------------------------ |
-| assertionsCount | 1             | how much assertions made by callback |
+| option name      | default value | description                                                                                         |
+| ---------------- | ------------- | --------------------------------------------------------------------------------------------------- |
+| expect           | {}            | object describing expectations that will be checked by assert, check "expectations"                 |
+| evaluationParams | []            | params that will be passed to scene evaluation, actual when evaluation is string                    |
+| assertionsCount  | 1             | how much assertions made by callback,required for callback, calculated automatically in other cases |
+
+**evaluation**
+the evaluation has 3 cases of resolution:
+— if it is an object, array, or postponed value it remains as is
+— if it is a string, then current scene will be addressed, it evaluate[evaluation] method will be called, and return value will be used
+— if it is function, then it will be called with `({page, scene, context}) => {/*...*/}` signature, and return value will be used
+
+All postponed values and promises will be resolved in the return value, on all nested levels
+for array or object (doesn't matter if it's a primitive or complex object). And the result passed
+to jest "expect" check as in example:
+
+```javascript
+expect(resolvedEvaluation)[expectation](expectedValue);
+```
+
+**expectations**
+expectations is just and object with following format:
+`{[jestExpectationName]: expectedValue}`
+
+for example:
+`{toEqual: { x:'hello' }}`
+
+expectations is used to configure further checks that made by jest
 
 ### play
 
@@ -178,6 +205,13 @@ export default class MyScene {
     regexp: request => ({
       /* puppeteer response https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#httprequestrespondresponse */
     })
+  };
+
+  evaluate = {
+    // see "evaluation" section
+    getBodyInnerHTML: async () => {
+      return await this.page.$eval("body", body => body.innerHTML);
+    }
   };
 
   // optional method, if present, will be called automatically after arrange call with new Scene in scenario
@@ -263,4 +297,25 @@ Note: instances created by Scenario preset nevertheless are instances of Scenari
 ```
 const scenario = new MyScenarioConstructor() ;
 console.log(scenario instanceof Scenario) // true
+```
+
+## Postponed values
+
+Postponed values are a mechanism that helps to write simple and concise references to often required
+evaluations, such as context values or page evaluations
+
+```javascript
+import {
+  contextValue,
+  evaluate,
+  evalSelector,
+  evalSelectorAll
+} from "puppeteer-scenario";
+
+new Scenario("test")
+  .act(/*...*/)
+  .assert(contextValue("myContextValue"), { toBe: "value" })
+  .assert(evaluate(() => window.location.host), { toBe: "google.com" })
+  .assert(evalSelector("body", body => body.innerHTML), { toBe: "hello" })
+  .assert(evalSelectorAll(".player"), { toHaveLength: 4 });
 ```
