@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import asyncDeepMap from "./utils/asyncDeepMap";
 
 class PostponedValue {
