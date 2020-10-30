@@ -237,3 +237,30 @@ interception keys by default is treated as regexp, used to compare with requeste
 (requestUrl, referenceUrl) => new RegExp(referenceUrl).test(requestUrl),
 
 This behavior could be overridden by `compareUrl` param in Scenario constructor
+
+## Advanced
+
+### Scenario preset
+
+It is possible to make scenario preset:
+
+```javascript
+const MyScenarioConstructor = Scenario.preset({
+  arrangeScenario,
+  ...scenarioOptions
+});
+```
+
+| option name     | default value | description                                                                  |
+| --------------- | ------------- | ---------------------------------------------------------------------------- |
+| arrangeScenario | —             | scenario to include by default can be convenient for authorization           |
+| scenarioOptions | {}            | options applicable to Scenario constructor (see constructor options section) |
+
+Options passed as scenarioOptions will be treated as default values.
+
+Note: instances created by Scenario preset nevertheless are instances of Scenario class:
+
+```
+const scenario = new MyScenarioConstructor() ;
+console.log(scenario instanceof Scenario) // true
+```
