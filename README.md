@@ -81,7 +81,7 @@ export default class VisitsScene extends Scene {
 ## Usage
 
 ```javascript
-import Scenario from "puppeteer-scenario";
+import { Scenario } from "puppeteer-scenario";
 
 describe("MyScenario", () => {
   it("should behave well", () => {

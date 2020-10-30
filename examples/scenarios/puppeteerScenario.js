@@ -1,4 +1,4 @@
-import Scenario, { contextValue } from "../../src";
+import { Scenario, contextValue } from "../../src";
 import PuppeteerScene from "../scenes/PuppeteerScene";
 
 export default new Scenario("puppeteer")

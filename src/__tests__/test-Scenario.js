@@ -170,9 +170,12 @@ describe("Scenario include", () => {
 
     await new Scenario({ name: "count included assertions" })
       .include(scenarioToInclude)
-      .assert(() => {
-        /* call later */
-      })
+      .assert(
+        () => {
+          /* call later */
+        },
+        { assertionsCount: 1 }
+      )
       .play();
 
     expect(true).toBe(true);

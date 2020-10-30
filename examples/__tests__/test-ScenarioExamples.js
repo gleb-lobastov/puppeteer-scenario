@@ -32,7 +32,7 @@ describe("scenarios", () => {
         scene: PuppeteerScene,
         url: "https://github.com/puppeteer/puppeteer"
       })
-      .act("openIssuesPage")
+      .act("clickOnIssuesPageLink")
       .assert(evaluate(() => window.location.href), {
         expect: { toBe: "https://github.com/puppeteer/puppeteer/issues" }
       })
