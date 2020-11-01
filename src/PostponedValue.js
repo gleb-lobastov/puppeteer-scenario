@@ -66,6 +66,9 @@ export function evalSelectorAll(selectorStr, evaluation, ...evaluationArgs) {
   });
 }
 
+const ArrayContaining = expect.arrayContaining([]).constructor;
+const ObjectContaining = expect.objectContaining({}).constructor;
+
 export function withPostponedValues(values, context) {
   return asyncDeepMap(values, value => {
     switch (true) {
@@ -73,6 +76,14 @@ export function withPostponedValues(values, context) {
         return value.resolve({ context });
       case value instanceof PageEvaluation:
         return value.resolve({ page: context.getPage() });
+      case ArrayContaining && value instanceof ArrayContaining:
+      case ObjectContaining && value instanceof ObjectContaining:
+        return withPostponedValues(value.sample, context).then(resolved => {
+          // eslint-disable-next-line no-param-reassign
+          value.sample = resolved;
+          return value;
+        });
+
       default:
         return value;
     }
