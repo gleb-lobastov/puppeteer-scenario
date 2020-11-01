@@ -9,14 +9,16 @@ export default async function type(
     hidden,
     timeout: waitTimeout
   });
-  await page.focus(selector);
   if (selection) {
+    await page.focus(selector);
     await page.$eval(
       selector,
       (element, { start, end, direction } = {}) =>
         element.setSelectionRange(start, end, direction),
       selection
     );
+  } else {
+    await page.click(selector, { clickCount: 3 });
   }
   await page.type(selector, value, { delay: typeDelay });
 }
