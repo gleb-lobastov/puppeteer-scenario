@@ -23,7 +23,10 @@ class ContextValue extends PostponedValue {
 
 class PageEvaluation extends PostponedValue {
   resolve({ page }) {
-    const [evaluation, { evaluationArgs, selectorStr, mode }] = this.args;
+    const [
+      evaluation = el => el,
+      { evaluationArgs, selectorStr, mode }
+    ] = this.args;
     if (!selectorStr) {
       return page.evaluate(evaluation, ...evaluationArgs);
     }
