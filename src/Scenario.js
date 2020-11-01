@@ -141,8 +141,6 @@ export default class Scenario {
       params: evaluationParams = [],
       expect: expectationName = "toEqual",
       expectedValue: rawExpectedValue,
-      evalExpectedValue,
-      expectedParams = [],
       assertionsCount = typeof evaluation === "function" ? null : 1
     } = {}
   ) {
@@ -163,9 +161,10 @@ export default class Scenario {
       }
 
       const actualValue = await evaluate(evaluation, context, evaluationParams);
-      const expectedValue = evalExpectedValue
-        ? await evaluate(rawExpectedValue, context, expectedParams)
-        : await withPostponedValues(rawExpectedValue, context);
+      const expectedValue = await withPostponedValues(
+        rawExpectedValue,
+        context
+      );
       return expect(actualValue)[expectationName](expectedValue);
     });
     this.assertionsCount += assertionsCount;
