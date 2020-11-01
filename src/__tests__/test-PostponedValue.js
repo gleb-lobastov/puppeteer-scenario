@@ -71,7 +71,7 @@ describe("PageEvaluation", () => {
       expect(
         await withPostponedValues(
           {
-            some: { path: [0, evalSelector(firstSelector), 1] },
+            some: { path: [0, evalSelector(firstSelector, value => value), 1] },
             otherOne: evalSelector(secondSelector, evalFn),
             justValue: 21
           },
@@ -98,7 +98,9 @@ describe("PageEvaluation", () => {
       expect(
         await withPostponedValues(
           {
-            some: { path: [0, evalSelectorAll(firstSelector), 1] },
+            some: {
+              path: [0, evalSelectorAll(firstSelector, value => value), 1]
+            },
             otherOne: evalSelectorAll(secondSelector, evalFn),
             justValue: 21
           },
