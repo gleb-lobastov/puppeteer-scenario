@@ -152,32 +152,25 @@ evaluation could be function (callback), string, object, array or postponedValue
 
 | option name      | default value | description                                                                                         |
 | ---------------- | ------------- | --------------------------------------------------------------------------------------------------- |
-| expect           | {}            | object describing expectations that will be checked by assert, check "expectations"                 |
-| evaluationParams | []            | params that will be passed to scene evaluation, actual when evaluation is string                    |
+| expect           | 'toEqual'     | jest matcher name (expectationName)                                                                 |
+| expectedValue    | —             | value to compare with                                                                               |
+| evaluationParams | []            | params that will be passed to scene evaluation                                                      |
 | assertionsCount  | 1             | how much assertions made by callback,required for callback, calculated automatically in other cases |
 
 **evaluation**
 the evaluation has 3 cases of resolution:
 — if it is an object, array, or postponed value it remains as is
-— if it is a string, then current scene will be addressed, it evaluate[evaluation] method will be called, and return value will be used
+— if it is a string, then current scene will be addressed, it `evaluations[evaluation]` method will be called, and return value will be used
 — if it is function, then it will be called with `({page, scene, context}) => {/*...*/}` signature, and return value will be used
+NOTE: in last case, assertionsCount parameter is required. Because otherwise it's to easy to forget about it. And in that case tests could be successful, just because jest expect less assertions, that exist in fact
 
 All postponed values and promises will be resolved in the return value, on all nested levels
 for array or object (doesn't matter if it's a primitive or complex object). And the result passed
 to jest "expect" check as in example:
 
 ```javascript
-expect(resolvedEvaluation)[expectation](expectedValue);
+expect(resolvedEvaluation)[expectationName](expectedValue);
 ```
-
-**expectations**
-expectations is just and object with following format:
-`{[jestExpectationName]: expectedValue}`
-
-for example:
-`{toEqual: { x:'hello' }}`
-
-expectations is used to configure further checks that made by jest
 
 ### play
 
@@ -314,8 +307,13 @@ import {
 
 new Scenario("test")
   .act(/*...*/)
-  .assert(contextValue("myContextValue"), { toBe: "value" })
-  .assert(evaluate(() => window.location.host), { toBe: "google.com" })
-  .assert(evalSelector("body", body => body.innerHTML), { toBe: "hello" })
-  .assert(evalSelectorAll(".player"), { toHaveLength: 4 });
+  .assert(contextValue("myContextValue"), { expectedValue: "value" })
+  .assert(evaluate(() => window.location.host), { expectedValue: "google.com" })
+  .assert(evalSelector("body", body => body.innerHTML), {
+    expectedValue: "hello"
+  })
+  .assert(evalSelectorAll(".player"), {
+    expect: "toHaveLength",
+    expectedValue: 4
+  });
 ```
