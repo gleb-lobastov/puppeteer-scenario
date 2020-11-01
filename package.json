@@ -3,6 +3,9 @@
   "version": "0.8.0",
   "description": "Small lib that helps write declarative tests with puppeteer",
   "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "build": "rollup --config rollup.config.js",
     "prepare": "npm run lint && npm test && npm run build",
