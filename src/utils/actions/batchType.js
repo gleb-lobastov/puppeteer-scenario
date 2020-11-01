@@ -1,9 +1,9 @@
 import type from "./type";
 
-export default function batchType(page, batchValues, options) {
+export default function batchType(page, batchParams, options) {
   return Promise.all(
-    batchValues.map(({ selector, value }) =>
-      type(page, selector, value, options)
+    batchParams.map(({ selector, value, options: particularOptions }) =>
+      type(page, selector, value, { ...options, ...particularOptions })
     )
   );
 }
