@@ -16,8 +16,12 @@ class PostponedValue {
 
 class ContextValue extends PostponedValue {
   resolve({ context }) {
-    const [pathInContext] = this.args;
-    return context.get(pathInContext);
+    const [pathInContext, modifier] = this.args;
+    const value = context.get(pathInContext);
+    if (modifier) {
+      return modifier(value);
+    }
+    return value;
   }
 }
 
@@ -42,8 +46,8 @@ function els(elements) {
   return elements.map(element => element.innerHTML);
 }
 
-export function contextValue(pathInContext) {
-  return new ContextValue(pathInContext);
+export function contextValue(pathInContext, modifier) {
+  return new ContextValue(pathInContext, modifier);
 }
 
 export function evaluate(evaluation, ...evaluationArgs) {
