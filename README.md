@@ -187,24 +187,16 @@ expect(resolvedEvaluation)[expectationName](expectedValue);
 Scene is a representation of an application page (a view, not a puppeteer one) in the form of a class written by users of the library. Scene has such structure:
 
 ```javascript
-export default class MyScene {
-  constructor(page, context) {
-    // Assumed, that scene instance is always used with same page
-    this.page = page;
-    this.context = context;
-  }
-
+export default class MyScene extends Scene {
   intercept = {
     regexp: request => ({
       /* puppeteer response https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#httprequestrespondresponse */
     })
   };
 
-  evaluate = {
+  evaluations = {
     // see "evaluation" section
-    getBodyInnerHTML: async () => {
-      return await this.page.$eval("body", body => body.innerHTML);
-    }
+    bodyInnerHTML: evalSelector("body", body => body.innerHTML)
   };
 
   // optional method, if present, will be called automatically after arrange call with new Scene in scenario
@@ -215,6 +207,13 @@ export default class MyScene {
   }
 }
 ```
+
+Also base Scene class provides helpful utils.
+— this.click
+— this.type
+— this.batchType
+
+Detailed information could be found in utils section
 
 [Check example](examples/scenes/JestScene.js)
 
@@ -295,7 +294,8 @@ console.log(scenario instanceof Scenario) // true
 ## Postponed values
 
 Postponed values are a mechanism that helps to write simple and concise references to often required
-evaluations, such as context values or page evaluations
+evaluations, such as context values or page evaluations. Postponed values can be used inside
+expect.arrayContaining and expect.objectContaining objects
 
 ```javascript
 import {
@@ -306,6 +306,7 @@ import {
 } from "puppeteer-scenario";
 
 new Scenario("test")
+  .arrange({ context: { requiredBonus: "health" } })
   .act(/*...*/)
   .assert(contextValue("myContextValue"), { expectedValue: "value" })
   .assert(evaluate(() => window.location.host), { expectedValue: "google.com" })
@@ -315,5 +316,56 @@ new Scenario("test")
   .assert(evalSelectorAll(".player"), {
     expect: "toHaveLength",
     expectedValue: 4
+  })
+  .assert(evalSelector(".bonus"), {
+    expectedValue: expect.arrayContaining([contextValue("requiredBonus")])
   });
 ```
+
+## Utils
+
+```javascript
+import { click, type, batchType } from "puppeteer-scenario";
+
+click(page, ".selector");
+```
+
+or
+
+```javascript
+import { Scene } from "puppeteer-scenario";
+
+class MyScene extends Scene {
+  async myMethod() {
+    await this.click(".selector");
+    await this.type(".selector input", "abc");
+  }
+}
+```
+
+— click(page, selector, options) — will be wait for element and click on it
+
+| option name   | default value | description                                                      |
+| ------------- | ------------- | ---------------------------------------------------------------- |
+| selectorIndex | 0             | to query all buttons by selector and click on specified by index |
+| visible       |               | page.waitForSelector option                                      |
+| hidden        |               | page.waitForSelector option                                      |
+| waitTimeout   |               | page.waitForSelector option                                      |
+| button        |               | page.click option                                                |
+| clickCount    |               | page.click option                                                |
+| clickDelay    |               | page.click option                                                |
+
+— type(page, selector, value, options) — will be wait for element and type
+
+| option name             | default value | description                               |
+| ----------------------- | ------------- | ----------------------------------------- |
+| selection: {start, end} | —             | select text on input before start to type |
+| typeDelay               |               | page.type option                          |
+| visible                 |               | page.waitForSelector option               |
+| hidden                  |               | page.waitForSelector option               |
+| waitTimeout             |               | page.waitForSelector option               |
+
+— batchType(page, batchParams, options) — will be wait and type for array of elements
+
+batchParams is array of shape { selector, value, options }, which is passed to type util
+both options is merged, with precedence of options from batchParam
