@@ -9,7 +9,7 @@ export default class MockedScene extends Scene {
     })
   };
 
-  evaluate = {
+  evaluations = {
     html: async () => {
       const bodyHandle = await this.page.$("body");
       return this.page.evaluate(body => body.innerHTML, bodyHandle);

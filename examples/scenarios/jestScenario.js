@@ -4,4 +4,7 @@ import JestScene from "../scenes/JestScene";
 export default new Scenario("jest")
   .arrange({ scene: JestScene })
   .act("collectIssues")
-  .assert(contextValue("jestIssues"), { expect: { toBeLessThan: 1500 } });
+  .assert(contextValue("jestIssues"), {
+    expect: "toBeLessThan",
+    expectedValue: 1400
+  });

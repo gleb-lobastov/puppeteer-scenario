@@ -1,4 +1,4 @@
-import { Scenario, contextValue } from "../../src";
+import { Scenario } from "../../src";
 import PuppeteerScene from "../scenes/PuppeteerScene";
 
 export default new Scenario("puppeteer")
@@ -7,4 +7,11 @@ export default new Scenario("puppeteer")
     url: "https://github.com/puppeteer/puppeteer"
   })
   .act("collectIssues")
-  .assert(contextValue("puppeteerIssues"), { expect: { toBeLessThan: 1500 } });
+  .assert("issuesCount", {
+    expect: "toBeLessThan",
+    expectedValue: 1500
+  })
+  .assert("issuesCountOtherWay", {
+    expect: "toBeLessThan",
+    expectedValue: 1600
+  });

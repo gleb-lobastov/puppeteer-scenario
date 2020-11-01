@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import puppeteer from "puppeteer";
-import { Scenario, evaluate, evalSelector } from "../../src";
+import { Scenario, evaluate, contextValue } from "../../src";
 import jestScenario from "../scenarios/jestScenario";
 import puppeteerScenario from "../scenarios/puppeteerScenario";
 import PuppeteerScene from "../scenes/PuppeteerScene";
@@ -34,7 +34,8 @@ describe("scenarios", () => {
       })
       .act("clickOnIssuesPageLink")
       .assert(evaluate(() => window.location.href), {
-        expect: { toBe: "https://github.com/puppeteer/puppeteer/issues" }
+        expect: "toBe",
+        expectedValue: "https://github.com/puppeteer/puppeteer/issues"
       })
       .play({ page });
   }, 30000);
@@ -43,12 +44,6 @@ describe("scenarios", () => {
     return new Scenario({ name: "withInclusions" })
       .include(jestScenario)
       .include(puppeteerScenario)
-      .assert(
-        evalSelector("[href*=stargazers]", element =>
-          parseFloat(element.ariaLabel)
-        ),
-        { expect: { toBeGreaterThan: 65000 } }
-      )
       .play({ page });
   }, 30000);
 
@@ -93,7 +88,69 @@ describe("scenarios", () => {
         }
       })
       .act("mockedRequest")
-      .assert("html", { expect: { toBe: "Hello world" } })
+      .assert("html", { expect: "toBe", expectedValue: "Hello world" })
+      .play({ page });
+  }, 30000);
+
+  it("should be able to use predefined evaluations", () => {
+    return new Scenario({ name: "withInclusions" })
+      .arrange({
+        url: "https://github.com/puppeteer/puppeteer",
+        context: { minimalExpectedStargazers: 65000 },
+        scene: PuppeteerScene
+      })
+      .assert("stargazersCount", {
+        expect: "toBeGreaterThan",
+        expectedValue: contextValue("minimalExpectedStargazers")
+      })
       .play({ page });
   }, 30000);
 });
+
+/*
+assert
+  evaluation
+    string -> call on scene with options.params
+    function -> call as scene fn with this and with options.params
+    other -> treat as postponed value
+  options
+    params: evaluationParams
+    expect: kind of expectation (default "toEquals:)
+    expected:
+      string -> call on scene with options.expectedParams
+      function -> call as scene fn with this and with options.expectedParams
+      other -> treat as postponed value
+    expectedParams: evaluationParams
+    
+    
+Other considered variants:
+LOW LEVEL ASSERT 
+      .assert(
+        evalSelector("[href*=stargazers]", element =>
+          parseFloat(element.ariaLabel)
+        ),
+        "toBeGreaterThan",
+        65000
+      )
+
+no way to hide implementation inside scene. Because exist cases, where need to pass params down to the scene
+(update one, specified of existed items, that exist on page)
+DIRECT CALL ON EXPECT
+      .assert("evaluateStargazersCount", stargazersCount =>
+        expect(stargazersCount).toBeGreaterThan(65000)
+      )
+direct call on expect is not convenient, because need to watch for assertions count,
+and cant apply postponed values as expected
+
+also its complicated if need to turn first argument into function
+
+MANUAL SCENE MANIPULATION
+      .assert(async scene =>
+        expect(await scene.stargazersCount({ id: 200 })).toBeGreaterThan(
+          await scene.resolve(contextValue("expectedStargazersCount"))
+        )
+      )
+
+add too much place to make all things manual, and dont follow separate of abstractions conception
+also postponed values became complicated to use and generally not usable
+ */

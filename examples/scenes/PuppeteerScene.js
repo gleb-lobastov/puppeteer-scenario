@@ -1,6 +1,14 @@
-import { Scene } from "../../src";
+import { Scene, contextValue, evalSelector } from "../../src";
 
 export default class PuppeteerScene extends Scene {
+  evaluations = {
+    issuesCount: contextValue("puppeteerIssues"),
+    issuesCountOtherWay: () => this.context.get("puppeteerIssues"),
+    stargazersCount: evalSelector("[href*=stargazers]", element =>
+      parseFloat(element.ariaLabel)
+    )
+  };
+
   async collectIssues() {
     const title = await this.page.$eval(
       '[data-content="Issues"] + span.Counter',
