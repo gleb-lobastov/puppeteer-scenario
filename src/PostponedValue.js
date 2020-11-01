@@ -23,18 +23,23 @@ class ContextValue extends PostponedValue {
 
 class PageEvaluation extends PostponedValue {
   resolve({ page }) {
-    const [
-      evaluation = el => el,
-      { evaluationArgs, selectorStr, mode }
-    ] = this.args;
+    const [evaluation, { evaluationArgs, selectorStr, mode }] = this.args;
     if (!selectorStr) {
       return page.evaluate(evaluation, ...evaluationArgs);
     }
     if (mode === "all") {
-      return page.$$eval(selectorStr, evaluation, ...evaluationArgs);
+      return page.$$eval(selectorStr, evaluation ?? els, ...evaluationArgs);
     }
-    return page.$eval(selectorStr, evaluation, ...evaluationArgs);
+    return page.$eval(selectorStr, evaluation ?? el, ...evaluationArgs);
   }
+}
+
+function el(element) {
+  return element.innerHTML;
+}
+
+function els(elements) {
+  return elements.map(element => element.innerHTML);
 }
 
 export function contextValue(pathInContext) {
