@@ -6,7 +6,7 @@ beforeEach(() => {
   invokeExpect.expectFn = new Proxy(() => {}, {
     get: (target, key) => {
       usageInfo.push(`get:${key}`);
-      return invokeExpect.expectFn;``
+      return invokeExpect.expectFn;
     },
     apply: (target, thisArg, argumentsList) => {
       usageInfo.push(`apply:${argumentsList}`);
