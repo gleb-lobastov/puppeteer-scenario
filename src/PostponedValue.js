@@ -1,21 +1,34 @@
 /* eslint-disable max-classes-per-file */
 import asyncDeepMap from "./utils/asyncDeepMap";
+import { DEFAULT_TIMEOUT } from "./consts";
 
 class PostponedValue {
   constructor(...args) {
     this.args = args;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  resolve() {
+  // eslint-disable-next-line class-methods-use-this,no-unused-vars
+  resolve(context) {
     throw new Error(
       "resolver is not implemented in PostponedValue abstract class"
     );
   }
+
+  modify(modifier) {
+    return new ModifiedValue(this, modifier);
+  }
+}
+
+class ModifiedValue extends PostponedValue {
+  async resolve(context) {
+    const [originalValue, modifier] = this.args;
+    const originalResult = await originalValue.resolve(context);
+    return modifier(originalResult);
+  }
 }
 
 class ContextValue extends PostponedValue {
-  resolve({ context }) {
+  resolve(context) {
     const [pathInContext, modifier] = this.args;
     const value = context.get(pathInContext);
     if (modifier) {
@@ -26,10 +39,17 @@ class ContextValue extends PostponedValue {
 }
 
 class PageEvaluation extends PostponedValue {
-  resolve({ page }) {
-    const [evaluation, { evaluationArgs, selectorStr, mode }] = this.args;
+  async resolve(context) {
+    const page = context.getPage();
+    const [
+      evaluation,
+      { evaluationArgs, selectorStr, mode, timeout = DEFAULT_TIMEOUT }
+    ] = this.args;
     if (!selectorStr) {
       return page.evaluate(evaluation, ...evaluationArgs);
+    }
+    if (timeout) {
+      await page.waitForSelector(selectorStr, { timeout });
     }
     if (mode === "all") {
       return page.$$eval(selectorStr, evaluation ?? els, ...evaluationArgs);
@@ -72,10 +92,8 @@ const ObjectContaining = expect.objectContaining({}).constructor;
 export function withPostponedValues(values, context) {
   return asyncDeepMap(values, value => {
     switch (true) {
-      case value instanceof ContextValue:
-        return value.resolve({ context });
-      case value instanceof PageEvaluation:
-        return value.resolve({ page: context.getPage() });
+      case value instanceof PostponedValue:
+        return value.resolve(context);
       case ArrayContaining && value instanceof ArrayContaining:
       case ObjectContaining && value instanceof ObjectContaining:
         return withPostponedValues(value.sample, context).then(resolved => {
@@ -83,7 +101,6 @@ export function withPostponedValues(values, context) {
           value.sample = resolved;
           return value;
         });
-
       default:
         return value;
     }

@@ -45,8 +45,10 @@ describe("PageEvaluation", () => {
       expect(
         await withPostponedValues(
           {
-            some: { path: [0, evaluate(() => firstValue), 1] },
-            otherOne: evaluate(() => secondValue),
+            some: {
+              path: [0, evaluate(valueCopy => valueCopy, firstValue), 1]
+            },
+            otherOne: evaluate(valueCopy => valueCopy, secondValue),
             justValue: 21
           },
           context
@@ -113,5 +115,27 @@ describe("PageEvaluation", () => {
       });
       expect(evalFn.mock.calls).toHaveLength(1);
     });
+  });
+});
+
+describe("ModifiedValue", () => {
+  it("should be modified", async () => {
+    const context = new ScenarioContext(new PageMock());
+    const ctxValue = "ctxValue";
+    const pageValue = "pageValue";
+    context.set("path", ctxValue);
+
+    const modifier = value => `${value}!`;
+
+    expect.assertions(1);
+    expect(
+      await withPostponedValues(
+        [
+          contextValue("path").modify(modifier),
+          evaluate(valueCopy => valueCopy, pageValue).modify(modifier)
+        ],
+        context
+      )
+    ).toEqual([modifier(ctxValue), modifier(pageValue)]);
   });
 });
