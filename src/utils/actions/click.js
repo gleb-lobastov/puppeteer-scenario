@@ -1,10 +1,12 @@
+import { DEFAULT_TIMEOUT } from "../../consts";
+
 export default async function click(
   page,
   selector,
   {
     visible,
     hidden,
-    waitTimeout = 5000,
+    waitTimeout = DEFAULT_TIMEOUT,
     button,
     clickCount,
     clickDelay,

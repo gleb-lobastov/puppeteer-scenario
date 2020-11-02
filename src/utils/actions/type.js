@@ -1,8 +1,10 @@
+import { DEFAULT_TIMEOUT } from "../../consts";
+
 export default async function type(
   page,
   selector,
   value,
-  { visible, hidden, waitTimeout = 5000, typeDelay, selection } = {}
+  { visible, hidden, waitTimeout = DEFAULT_TIMEOUT, typeDelay, selection } = {}
 ) {
   await page.waitForSelector(selector, {
     visible,
