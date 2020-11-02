@@ -16,15 +16,13 @@ export default class PageMock {
 
   close = jest.fn();
 
-  evaluate = jest.fn(evalFn => evalFn());
+  waitForSelector = jest.fn();
 
-  $eval = jest.fn((selector, evalFn = value => value) =>
-    evalFn(selector)
-  );
+  evaluate = jest.fn((evalFn, ...args) => evalFn(...args));
 
-  $$eval = jest.fn((selector, evalFn = value => value) =>
-    evalFn([selector])
-  );
+  $eval = jest.fn((selector, evalFn = value => value) => evalFn(selector));
+
+  $$eval = jest.fn((selector, evalFn = value => value) => evalFn([selector]));
 
   fireEvent(eventName, ...args) {
     const callbacks = this.callbacks[eventName] || [];

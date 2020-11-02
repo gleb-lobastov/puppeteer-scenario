@@ -1,5 +1,6 @@
 import takeScreenshotIfNeeded from "./utils/takeScreenshotIfNeeded";
 import getSceneName from "./utils/getSceneName";
+import invokeExpect from "./utils/invokeExpect";
 import ScenarioContext from "./ScenarioContext";
 import { withPostponedValues } from "./PostponedValue";
 
@@ -161,11 +162,11 @@ export default class Scenario {
       }
 
       const actualValue = await evaluate(evaluation, context, evaluationParams);
-      const expectedValue = await withPostponedValues(
-        rawExpectedValue,
-        context
-      );
-      return expect(actualValue)[expectationName](expectedValue);
+      const expectedValue =
+        rawExpectedValue !== undefined
+          ? await withPostponedValues(rawExpectedValue, context)
+          : rawExpectedValue;
+      return invokeExpect(actualValue, expectationName, expectedValue);
     });
     this.assertionsCount += assertionsCount;
     return this;
@@ -208,7 +209,7 @@ function asArray(value) {
   return [value];
 }
 
-async function evaluate(evaluationNameOrValue, context, evaluationParams) {
+async function evaluate(evaluationNameOrValue, context, evaluationParams = []) {
   if (typeof evaluationNameOrValue !== "string") {
     return withPostponedValues(evaluationNameOrValue, context);
   }
