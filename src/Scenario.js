@@ -118,6 +118,17 @@ export default class Scenario {
     if (!action) {
       throw new Error("required action to be defined");
     }
+    if (typeof action === "function") {
+      console.log('Function passed to act. It\'s possible, but this feature is experimental and undocumented')
+      this.step(context => {
+        return action({
+          page: context.getPage(),
+          scene: context.getScene(),
+          context: context.keyValueContext
+        });
+      });
+      return this;
+    }
     this.step(async context => {
       const scene = context.getScene();
       if (!scene) {
