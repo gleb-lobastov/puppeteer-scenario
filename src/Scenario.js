@@ -27,7 +27,8 @@ export default class Scenario {
   constructor({
     name = "unnamed scenario",
     screenshot = { takeScreenshot: false },
-    compareUrl
+    compareUrl,
+    interceptedResponseDefaults
   } = {}) {
     this.name = name;
     this.steps = [];
@@ -37,7 +38,9 @@ export default class Scenario {
       screenshot === true
         ? { takeScreenshot: true }
         : { takeScreenshot: true, ...screenshot };
-    this.contextOptions = { interceptorOptions: { compareUrl } };
+    this.contextOptions = {
+      interceptorOptions: { compareUrl, interceptedResponseDefaults }
+    };
     return this;
   }
 
@@ -126,7 +129,9 @@ export default class Scenario {
     }
     if (typeof action === "function") {
       // eslint-disable-next-line no-console
-      console.log('Function passed to act. It\'s possible, but this feature is experimental and undocumented')
+      console.log(
+        "Function passed to act. It's possible, but this feature is experimental and undocumented"
+      );
       this.step(context => {
         return action({
           page: context.getPage(),

@@ -1,13 +1,16 @@
+import checkRule from "./Interceptor/checkRule";
+import assembleResponse from "./Interceptor/assembleResponse";
+
 export default class Interceptor {
   constructor(options = {}) {
     this.options = options;
-    this.interceptionRules = { global: {}, scene: {} };
+    this.interceptionRules = { global: [], scene: [] };
     this.pagesWithInterception = new WeakSet();
   }
 
   async updateInterceptionRules(page, { global, scene }) {
     this.interceptionRules = {
-      global: { ...this.interceptionRules.global, ...global },
+      global: [...global, ...this.interceptionRules.global],
       scene: scene ?? this.interceptionRules.scene
     };
     await this.setRequestInterceptionOnce(page);
@@ -21,7 +24,7 @@ export default class Interceptor {
   }
 
   async setRequestInterceptionOnce(page) {
-    const { compareUrl = defaultCompareUrl } = this.options;
+    const { compareUrl, interceptedResponseDefaults } = this.options;
 
     if (this.pagesWithInterception.has(page)) {
       return;
@@ -37,15 +40,19 @@ export default class Interceptor {
 
       try {
         let isIntercepted = false;
-        const rules = [
-          // scene rules has precedence over global rules
-          ...Object.entries(sceneInterceptionRules ?? {}),
-          ...Object.entries(globalInterceptionRules ?? {})
+        const interceptions = [
+          // scene interceptions has precedence over global interceptions
+          ...sceneInterceptionRules,
+          ...globalInterceptionRules
         ];
-        for (const [path, rule] of rules) {
-          if (compareUrl(request.url(), path)) {
+        for (const interception of interceptions) {
+          if (checkRule(request, interception.rule, { compareUrl })) {
             // eslint-disable-next-line no-await-in-loop
-            const response = await rule(request);
+            const response = await assembleResponse(
+              request,
+              interception.response,
+              interceptedResponseDefaults
+            );
             if (response !== null && response !== undefined) {
               isIntercepted = true;
               request.respond(response);
@@ -63,8 +70,4 @@ export default class Interceptor {
       }
     });
   }
-}
-
-function defaultCompareUrl(requestUrl, referenceUrl) {
-  return new RegExp(referenceUrl).test(requestUrl);
 }
