@@ -5,15 +5,21 @@ import ScenarioContext from "./ScenarioContext";
 import { withPostponedValues } from "./PostponedValue";
 
 export default class Scenario {
-  static preset({ arrangeScenario, ...presetOptions }) {
+  static preset({ arrange, ...presetOptions }) {
     return function PresetScenario(options) {
       const scenario = new Scenario({
         ...presetOptions,
         ...options
       });
-      if (arrangeScenario) {
-        scenario.include(arrangeScenario);
+
+      if (arrange) {
+        scenario.include(
+          arrange instanceof Scenario
+            ? arrange
+            : new Scenario({ name: arrange.name }).arrange(arrange)
+        );
       }
+
       return scenario;
     };
   }
@@ -119,6 +125,7 @@ export default class Scenario {
       throw new Error("required action to be defined");
     }
     if (typeof action === "function") {
+      // eslint-disable-next-line no-console
       console.log('Function passed to act. It\'s possible, but this feature is experimental and undocumented')
       this.step(context => {
         return action({
