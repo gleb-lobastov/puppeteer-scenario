@@ -4,7 +4,7 @@ export default function assembleResponse(
   responseDefaults = {}
 ) {
   const responseConfig =
-    typeof responseArg === "function" ? responseArg() : responseArg;
+    typeof responseArg === "function" ? responseArg(request) : responseArg;
 
   const responseParams =
     typeof responseConfig === "string"
