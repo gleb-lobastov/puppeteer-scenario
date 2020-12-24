@@ -16,7 +16,7 @@ export default class Scenario {
         scenario.include(
           arrange instanceof Scenario
             ? arrange
-            : new Scenario({ name: arrange.name }).arrange(arrange)
+            : new Scenario({ name: "preset arrange" }).arrange(arrange)
         );
       }
 
@@ -28,6 +28,7 @@ export default class Scenario {
     name = "unnamed scenario",
     screenshot = { takeScreenshot: false },
     compareUrl,
+    interceptionFilter,
     interceptedResponseDefaults
   } = {}) {
     this.name = name;
@@ -39,7 +40,11 @@ export default class Scenario {
         ? { takeScreenshot: true }
         : { takeScreenshot: true, ...screenshot };
     this.contextOptions = {
-      interceptorOptions: { compareUrl, interceptedResponseDefaults }
+      interceptorOptions: {
+        compareUrl,
+        interceptionFilter,
+        interceptedResponseDefaults
+      }
     };
     return this;
   }

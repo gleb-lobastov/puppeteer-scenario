@@ -1,19 +1,31 @@
 export default function assembleResponse(
   request,
-  responseArg,
+  interception,
   responseDefaults = {}
 ) {
-  const responseConfig =
-    typeof responseArg === "function" ? responseArg(request) : responseArg;
+  const responseArg = pickResponseArg(interception, request);
+  const responseObject = resolveResponseObject(responseArg, request);
 
-  const responseParams =
-    typeof responseConfig === "string"
-      ? { body: responseConfig }
-      : responseConfig;
-
-  if (responseParams === null) {
+  if (responseObject === null) {
     return null;
   }
 
-  return { ...responseDefaults, ...responseParams };
+  return {
+    ...responseDefaults,
+    ...responseObject
+  };
+}
+
+function pickResponseArg({ response, responseByMethod }, request) {
+  const foundResponseByMethod = responseByMethod?.[request.method()];
+  return foundResponseByMethod === undefined ? response : foundResponseByMethod;
+}
+
+function resolveResponseObject(responseArg, request) {
+  const response =
+    typeof responseArg === "function" ? responseArg(request) : responseArg;
+  if (typeof response === "string") {
+    return { body: response };
+  }
+  return response;
 }

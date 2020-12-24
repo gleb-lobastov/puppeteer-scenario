@@ -38,7 +38,11 @@ export default class Interceptor {
   }
 
   async setRequestInterceptionOnce(page) {
-    const { compareUrl, interceptedResponseDefaults } = this.options;
+    const {
+      compareUrl,
+      interceptionFilter = () => true,
+      interceptedResponseDefaults
+    } = this.options;
 
     if (this.pagesWithInterception.has(page)) {
       return;
@@ -60,15 +64,25 @@ export default class Interceptor {
           ...globalInterceptionRules
         ];
         for (const interception of interceptions) {
-          if (checkRule(request, interception.rule, { compareUrl })) {
+          if (
+            interceptionFilter(request) &&
+            checkRule(request, interception, { compareUrl })
+          ) {
             // eslint-disable-next-line no-await-in-loop
             const response = await assembleResponse(
               request,
-              interception.response,
+              interception,
               interceptedResponseDefaults
             );
             if (response !== null && response !== undefined) {
               isIntercepted = true;
+              if (interception.onBeforeIntercept) {
+                interception.onBeforeIntercept.call(
+                  interception,
+                  request,
+                  response
+                );
+              }
               request.respond(response);
             }
             break;

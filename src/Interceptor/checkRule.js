@@ -1,12 +1,18 @@
 export default function checkRule(
   request,
-  rule,
+  interception,
   { compareUrl = defaultCompareUrl } = {}
 ) {
-  if (typeof rule !== "string") {
+  const { url, response, responseByMethod } = interception;
+
+  const urls = Array.isArray(url) ? url : [url];
+  const requestUrl = request.url();
+  if (!urls.some(urlToCompare => compareUrl(requestUrl, urlToCompare))) {
     return false;
   }
-  return compareUrl(request.url(), rule);
+
+  const requestMethod = request.method();
+  return Boolean(response || responseByMethod?.[requestMethod]);
 }
 
 function defaultCompareUrl(requestUrl, referenceUrl) {
