@@ -1,5 +1,5 @@
 export default function checkRule(
-    request,
+  request,
   rule,
   { compareUrl = defaultCompareUrl } = {}
 ) {

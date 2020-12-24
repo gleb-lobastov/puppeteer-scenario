@@ -80,12 +80,15 @@ describe("scenarios", () => {
       .arrange({
         scene: MockedScene,
         url: "https://google.com/",
-        intercept: {
-          "https://google.com/$": () => ({
-            contentType: "text/html",
-            body: '<html lang="en"><body>Hello</body></html>'
-          })
-        }
+        intercept: [
+          {
+            rule: "https://google.com/$",
+            response: () => ({
+              contentType: "text/html",
+              body: '<html lang="en"><body>Hello</body></html>'
+            })
+          }
+        ]
       })
       .act("mockedRequest")
       .assert("html", { expect: "toBe", expectedValue: "Hello world" })

@@ -10,12 +10,12 @@ describe("Interceptor", () => {
     const interceptor = new Interceptor();
 
     await interceptor.updateInterceptionRules(pageMock, {
-      global: { "test/\\d": jest.fn(() => response) }
+      global: [{ rule: "test/\\d", response: jest.fn(() => response) }]
     });
     await pageMock.fireEvent("request", requestMock);
 
     expect(pageMock.setRequestInterception).toBeCalledTimes(1);
-    expect(requestMock.respond).toBeCalledWith(response);
+    expect(requestMock.respond).toBeCalledWith({ body: response });
   });
 
   it("should prefer request from scene interceptionRules", async () => {
@@ -25,12 +25,12 @@ describe("Interceptor", () => {
     const interceptor = new Interceptor();
 
     await interceptor.updateInterceptionRules(pageMock, {
-      global: { test: jest.fn(() => "not this") },
-      scene: { test: jest.fn(() => response) }
+      global: [{ rule: "test", response: jest.fn(() => "not this") }],
+      scene: [{ rule: "test", response: jest.fn(() => response) }]
     });
     await pageMock.fireEvent("request", requestMock);
 
-    expect(requestMock.respond).toBeCalledWith(response);
+    expect(requestMock.respond).toBeCalledWith({ body: response });
   });
 
   it("should use custom compareUrl fn", async () => {
@@ -47,11 +47,11 @@ describe("Interceptor", () => {
     const interceptor = new Interceptor({ compareUrl: compareReverse });
 
     await interceptor.updateInterceptionRules(pageMock, {
-      scene: { "world/hello": jest.fn(() => response) }
+      scene: [{ rule: "world/hello", response: jest.fn(() => response) }]
     });
     await pageMock.fireEvent("request", requestMock);
 
-    expect(requestMock.respond).toBeCalledWith(response);
+    expect(requestMock.respond).toBeCalledWith({ body: response });
   });
 
   it("should continue request if url not match", async () => {

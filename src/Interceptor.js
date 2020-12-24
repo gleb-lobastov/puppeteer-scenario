@@ -9,8 +9,22 @@ export default class Interceptor {
   }
 
   async updateInterceptionRules(page, { global, scene }) {
+    if (global !== undefined && !Array.isArray(global)) {
+      const tag = Object.prototype.toString.call(global);
+      throw new Error(
+        `Expected global intercept rules to be an array, but got ${tag}`
+      );
+    }
+    if (scene !== undefined && !Array.isArray(scene)) {
+      const tag = Object.prototype.toString.call(scene);
+      throw new Error(
+        `Expected scene intercept rules to be an array, but got ${tag}`
+      );
+    }
     this.interceptionRules = {
-      global: [...global, ...this.interceptionRules.global],
+      global: global
+        ? [...global, ...this.interceptionRules.global]
+        : this.interceptionRules.global,
       scene: scene ?? this.interceptionRules.scene
     };
     await this.setRequestInterceptionOnce(page);
