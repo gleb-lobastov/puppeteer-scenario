@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-scenario",
-  "version": "0.10.0",
+  "version": "0.11.0-alpha.0",
   "description": "Small lib that helps write declarative tests with puppeteer",
   "main": "lib/index.js",
   "files": [
