@@ -82,7 +82,7 @@ describe("scenarios", () => {
         url: "https://google.com/",
         intercept: [
           {
-            rule: "https://google.com/$",
+            url: "https://google.com/$",
             response: () => ({
               contentType: "text/html",
               body: '<html lang="en"><body>Hello</body></html>'

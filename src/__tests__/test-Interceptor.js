@@ -10,7 +10,7 @@ describe("Interceptor", () => {
     const interceptor = new Interceptor();
 
     await interceptor.updateInterceptionRules(pageMock, {
-      global: [{ rule: "test/\\d", response: jest.fn(() => response) }]
+      global: [{ url: "test/\\d", response: jest.fn(() => response) }]
     });
     await pageMock.fireEvent("request", requestMock);
 
@@ -25,8 +25,8 @@ describe("Interceptor", () => {
     const interceptor = new Interceptor();
 
     await interceptor.updateInterceptionRules(pageMock, {
-      global: [{ rule: "test", response: jest.fn(() => "not this") }],
-      scene: [{ rule: "test", response: jest.fn(() => response) }]
+      global: [{ url: "test", response: jest.fn(() => "not this") }],
+      scene: [{ url: "test", response: jest.fn(() => response) }]
     });
     await pageMock.fireEvent("request", requestMock);
 
@@ -47,7 +47,7 @@ describe("Interceptor", () => {
     const interceptor = new Interceptor({ compareUrl: compareReverse });
 
     await interceptor.updateInterceptionRules(pageMock, {
-      scene: [{ rule: "world/hello", response: jest.fn(() => response) }]
+      scene: [{ url: "world/hello", response: jest.fn(() => response) }]
     });
     await pageMock.fireEvent("request", requestMock);
 

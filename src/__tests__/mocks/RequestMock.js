@@ -7,6 +7,10 @@ export default class RequestMock {
     return this.options.url;
   });
 
+  method = jest.fn(() => {
+    return this.options.method;
+  });
+
   respond = jest.fn();
 
   continue = jest.fn();

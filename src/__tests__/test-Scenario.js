@@ -22,7 +22,7 @@ describe("Scenario arrange", () => {
       "arrange Scene with intercept"
     );
     const page = new PageMock();
-    const sceneInterceptionRules = { test: () => ({}) };
+    const sceneInterceptionRules = [{ url: /test/, response: () => ({}) }];
 
     await scenario
       .step(context => {

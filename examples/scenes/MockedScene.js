@@ -3,7 +3,7 @@ import { Scene } from "../../src";
 export default class MockedScene extends Scene {
   intercept = [
     {
-      rule: "https://google.com/api/request/",
+      url: "https://google.com/api/request/",
       response: () => ({
         content: "application/json",
         headers: { "Access-Control-Allow-Origin": "*" },
