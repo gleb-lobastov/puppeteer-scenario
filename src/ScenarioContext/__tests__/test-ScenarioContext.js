@@ -1,5 +1,5 @@
 import ScenarioContext from "../ScenarioContext";
-import InterceptorMock from "./mocks/InterceptorMock";
+import InterceptorMock from "../../__tests__/mocks/InterceptorMock";
 
 describe("ScenarioContext page", () => {
   it("should return initial page in getPage method if other page is not set", () => {
