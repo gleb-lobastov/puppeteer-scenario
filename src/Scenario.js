@@ -1,6 +1,7 @@
 import takeScreenshotIfNeeded from "./utils/takeScreenshotIfNeeded";
 import getSceneName from "./utils/getSceneName";
 import invokeExpect from "./utils/invokeExpect";
+import { debug } from "./utils/log";
 import ScenarioContext from "./ScenarioContext";
 import { withPostponedValues } from "./PostponedValue";
 
@@ -50,10 +51,7 @@ export default class Scenario {
   }
 
   log(message, ...args) {
-    if (process.env.DEBUG_PUPPETEER_SCENARIO) {
-      // eslint-disable-next-line no-console
-      console.log(`Scenario "${this.name}":`, message, ...args);
-    }
+    debug(`[${this.name}]`, message, ...args);
   }
 
   step(action) {
@@ -133,8 +131,7 @@ export default class Scenario {
       throw new Error("required action to be defined");
     }
     if (typeof action === "function") {
-      // eslint-disable-next-line no-console
-      console.log(
+      this.log(
         "Function passed to act. It's possible, but this feature is experimental and undocumented"
       );
       this.step(context => {

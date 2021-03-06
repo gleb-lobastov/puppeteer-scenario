@@ -1,5 +1,6 @@
 import checkRule from "./Interceptor/checkRule";
 import assembleResponse from "./Interceptor/assembleResponse";
+import { logError } from "./utils/log";
 
 export default class Interceptor {
   constructor(options = {}) {
@@ -93,8 +94,7 @@ export default class Interceptor {
           request.continue();
         }
       } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log(error);
+        logError(error);
       }
     });
   }

@@ -7,3 +7,4 @@ export {
   evalSelectorAll
 } from "./PostponedValue";
 export { type, batchType, click } from "./utils/actions";
+export { setLogger, resetLogger } from "./utils/log";
