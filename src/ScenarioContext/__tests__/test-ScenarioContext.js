@@ -1,5 +1,4 @@
 import ScenarioContext from "../ScenarioContext";
-import InterceptorMock from "../../__tests__/mocks/InterceptorMock";
 
 describe("ScenarioContext page", () => {
   it("should return initial page in getPage method if other page is not set", () => {
@@ -72,39 +71,5 @@ describe("ScenarioContext keyValueContext", () => {
     context.set(`${keyPart}.${lastKeyPart}`, value);
 
     expect(context.get(keyPart)).toEqual({ [lastKeyPart]: value });
-  });
-});
-
-describe("ScenarioContext interceptor", () => {
-  it("should forward scene interceptors in setPage method", () => {
-    const pageObj = { page: true };
-    const globalInterceptionRules = { globalInterceptionRules: true };
-    const sceneInterceptionRules = { sceneInterceptionRules: true };
-    const context = new ScenarioContext(pageObj);
-    context.interceptor = new InterceptorMock();
-
-    context.updateInterceptionRules({
-      global: globalInterceptionRules,
-      scene: sceneInterceptionRules
-    });
-
-    expect(context.interceptor.updateInterceptionRules).toBeCalledWith(
-      pageObj,
-      {
-        global: globalInterceptionRules,
-        scene: sceneInterceptionRules
-      }
-    );
-  });
-
-  it("should reset scene interceptors in setPage method", () => {
-    const initialPageObj = {};
-    const updatedPageObj = {};
-    const context = new ScenarioContext(initialPageObj);
-    context.interceptor = new InterceptorMock();
-
-    context.setPage(updatedPageObj);
-
-    expect(context.interceptor.updatePage).toBeCalledTimes(1);
   });
 });

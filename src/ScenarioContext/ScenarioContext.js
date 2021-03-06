@@ -1,4 +1,4 @@
-import Interceptor from "../Interceptor";
+import Interceptor from "../Interceptor/Interceptor";
 import createKeyValueContext from "./createKeyValueContext";
 
 export default class ScenarioContext {
@@ -25,7 +25,6 @@ export default class ScenarioContext {
   setPage(page) {
     this.page = page;
     this.setScene(null);
-    return this.interceptor.updatePage(page);
   }
 
   getScene() {
@@ -34,12 +33,5 @@ export default class ScenarioContext {
 
   setScene(scene) {
     this.scene = scene;
-  }
-
-  updateInterceptionRules(interceptionRules) {
-    return this.interceptor.updateInterceptionRules(
-      this.getPage(),
-      interceptionRules
-    );
   }
 }

@@ -18,25 +18,21 @@ describe("Scenario arrange", () => {
   });
 
   it("should arrange Scene with intercept", async () => {
-    const { contextPromise, scenario } = createScenario(
-      "arrange Scene with intercept"
-    );
+    const { scenario } = createScenario("arrange Scene with intercept");
+    scenario.interceptor = new InterceptorMock();
+
     const page = new PageMock();
     const sceneInterceptionRules = [{ url: /test/, response: () => ({}) }];
 
     await scenario
-      .step(context => {
-        // eslint-disable-next-line no-param-reassign
-        context.interceptor = new InterceptorMock();
-      })
       .arrange({
         scene: SceneMock.preset({ intercept: sceneInterceptionRules })
       })
       .play({ page });
 
-    expect(
-      (await contextPromise).interceptor.updateInterceptionRules
-    ).toBeCalledWith(page, { scene: sceneInterceptionRules });
+    expect(scenario.interceptor.updateInterceptionRules).toBeCalledWith(page, {
+      scene: sceneInterceptionRules
+    });
   });
 
   it("should arrange contextValues", async () => {

@@ -1,6 +1,6 @@
 import Interceptor from "../Interceptor";
-import PageMock from "./mocks/PageMock";
-import RequestMock from "./mocks/RequestMock";
+import PageMock from "../../__tests__/mocks/PageMock";
+import RequestMock from "../../__tests__/mocks/RequestMock";
 
 describe("Interceptor", () => {
   it("should intercept request", async () => {

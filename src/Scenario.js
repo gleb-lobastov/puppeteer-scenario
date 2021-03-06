@@ -3,6 +3,7 @@ import getSceneName from "./utils/getSceneName";
 import invokeExpect from "./utils/invokeExpect";
 import { debug } from "./utils/log";
 import ScenarioContext from "./ScenarioContext";
+import Interceptor from "./Interceptor";
 import { withPostponedValues } from "./PostponedValue";
 
 export default class Scenario {
@@ -40,13 +41,11 @@ export default class Scenario {
       screenshot === true
         ? { takeScreenshot: true }
         : { takeScreenshot: true, ...screenshot };
-    this.contextOptions = {
-      interceptorOptions: {
-        compareUrl,
-        interceptionFilter,
-        interceptedResponseDefaults
-      }
-    };
+    this.interceptor = new Interceptor({
+      compareUrl,
+      interceptionFilter,
+      interceptedResponseDefaults
+    });
     return this;
   }
 
@@ -83,6 +82,7 @@ export default class Scenario {
       if (page) {
         this.log("arrange page");
         await context.setPage(page);
+        await this.interceptor.updatePage(page);
       }
       const currentPage = page || context.getPage();
 
@@ -90,7 +90,7 @@ export default class Scenario {
       // interceptions should be applied before url, because it could intercept following requests
       if (globalInterceptionRules) {
         this.log(`setup global interceptions`);
-        await context.updateInterceptionRules({
+        await this.interceptor.updateInterceptionRules(currentPage, {
           global: globalInterceptionRules
         });
       }
@@ -107,7 +107,7 @@ export default class Scenario {
       if (scene?.intercept) {
         this.log(`setup scene interceptions "${getSceneName(scene)}"`);
         const sceneInterceptionRules = scene.intercept;
-        await context.updateInterceptionRules({
+        await this.interceptor.updateInterceptionRules(currentPage, {
           scene: sceneInterceptionRules
         });
       }
@@ -202,7 +202,7 @@ export default class Scenario {
       expect.assertions(this.assertionsCount);
     }
 
-    const context = new ScenarioContext(page, this.contextOptions);
+    const context = new ScenarioContext(page);
 
     /* eslint-disable no-await-in-loop */
     for (; this.stepIndex < this.steps.length; this.stepIndex += 1) {

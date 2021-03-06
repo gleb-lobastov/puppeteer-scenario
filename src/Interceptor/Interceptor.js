@@ -1,6 +1,6 @@
-import checkRule from "./Interceptor/checkRule";
-import assembleResponse from "./Interceptor/assembleResponse";
-import { logError } from "./utils/log";
+import checkRule from "./checkRule";
+import assembleResponse from "./assembleResponse";
+import { logError } from "../utils/log";
 
 export default class Interceptor {
   constructor(options = {}) {
