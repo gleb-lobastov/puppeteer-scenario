@@ -1,10 +1,11 @@
 export default function assembleResponse(
   request,
   interception,
-  responseDefaults = {}
+  responseDefaults = {},
+  context
 ) {
   const responseArg = pickResponseArg(interception, request);
-  const responseObject = resolveResponseObject(responseArg, request);
+  const responseObject = resolveResponseObject(responseArg, request, context);
 
   if (responseObject === null) {
     return null;
@@ -21,9 +22,11 @@ function pickResponseArg({ response, responseByMethod }, request) {
   return foundResponseByMethod === undefined ? response : foundResponseByMethod;
 }
 
-function resolveResponseObject(responseArg, request) {
+function resolveResponseObject(responseArg, request, context) {
   const response =
-    typeof responseArg === "function" ? responseArg(request) : responseArg;
+    typeof responseArg === "function"
+      ? responseArg(request, context)
+      : responseArg;
   if (typeof response === "string") {
     return { body: response };
   }

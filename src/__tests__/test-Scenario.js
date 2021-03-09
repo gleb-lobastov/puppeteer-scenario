@@ -30,6 +30,7 @@ describe("Scenario arrange", () => {
       })
       .play({ page });
 
+    expect(scenario.interceptor.setContext).toBeCalledTimes()
     expect(scenario.interceptor.updateInterceptionRules).toBeCalledWith(page, {
       scene: sceneInterceptionRules
     });

@@ -204,6 +204,8 @@ export default class Scenario {
 
     const context = new ScenarioContext(page);
 
+    this.interceptor.setContext(context);
+
     /* eslint-disable no-await-in-loop */
     for (; this.stepIndex < this.steps.length; this.stepIndex += 1) {
       const step = this.steps[this.stepIndex];
@@ -216,6 +218,8 @@ export default class Scenario {
         break;
       }
     }
+
+    this.interceptor.setContext(null);
 
     const lastError = context.get("error");
     if (lastError) {

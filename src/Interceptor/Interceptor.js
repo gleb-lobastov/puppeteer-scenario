@@ -7,6 +7,12 @@ export default class Interceptor {
     this.options = options;
     this.interceptionRules = { global: [], scene: [] };
     this.pagesWithInterception = new WeakSet();
+    this.invoked = new WeakSet();
+    this.context = null;
+  }
+
+  setContext(context) {
+    this.context = context;
   }
 
   async updateInterceptionRules(page, { global, scene }) {
@@ -73,9 +79,13 @@ export default class Interceptor {
             const response = await assembleResponse(
               request,
               interception,
-              interceptedResponseDefaults
+              interceptedResponseDefaults,
+              this.context
             );
             if (response !== null && response !== undefined) {
+              if (interception.once && this.invoked.has(interception)) {
+                break;
+              }
               isIntercepted = true;
               if (interception.onBeforeIntercept) {
                 interception.onBeforeIntercept.call(
@@ -83,6 +93,9 @@ export default class Interceptor {
                   request,
                   response
                 );
+              }
+              if (interception.once) {
+                this.invoked.add(interception);
               }
               request.respond(response);
             }
