@@ -3,7 +3,7 @@ export default function checkRule(
   interception,
   { compareUrl = defaultCompareUrl } = {}
 ) {
-  const { url, response, responseByMethod } = interception;
+  const { url, response, method, responseByMethod } = interception;
 
   const urls = Array.isArray(url) ? url : [url];
   const requestUrl = request.url();
@@ -12,7 +12,10 @@ export default function checkRule(
   }
 
   const requestMethod = request.method();
-  return Boolean(response || responseByMethod?.[requestMethod]);
+  if (response) {
+    return !method || method === requestMethod;
+  }
+  return Boolean(responseByMethod?.[requestMethod]);
 }
 
 function defaultCompareUrl(requestUrl, referenceUrl) {
