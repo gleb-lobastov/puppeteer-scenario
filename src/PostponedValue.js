@@ -28,9 +28,17 @@ class ModifiedValue extends PostponedValue {
 }
 
 class ContextValue extends PostponedValue {
-  resolve(context) {
-    const [pathInContext, modifier] = this.args;
-    const value = context.get(pathInContext);
+  async resolve(context) {
+    const [pathInContext, optionsOrModifier] = this.args;
+    const { modifier, wait = true, timeout } =
+      typeof optionsOrModifier === "function"
+        ? { modifier: optionsOrModifier }
+        : optionsOrModifier ?? {};
+
+    const value = wait
+      ? await context.wait(pathInContext, timeout)
+      : context.get(pathInContext);
+
     if (modifier) {
       return modifier(value);
     }
@@ -66,8 +74,8 @@ function els(elements) {
   return elements.map(element => element.innerHTML);
 }
 
-export function contextValue(pathInContext, modifier) {
-  return new ContextValue(pathInContext, modifier);
+export function contextValue(pathInContext, optionsOrModifier) {
+  return new ContextValue(pathInContext, optionsOrModifier);
 }
 
 export function evaluate(evaluation, ...evaluationArgs) {
