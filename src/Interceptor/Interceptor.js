@@ -5,7 +5,12 @@ import { logError } from "../utils/log";
 export default class Interceptor {
   constructor(options = {}) {
     this.options = options;
-    this.interceptionRules = { global: [], scene: [] };
+    this.interceptionRules = {
+      global: [],
+      globalOnce: [],
+      scene: [],
+      sceneOnce: []
+    };
     this.pagesWithInterception = new WeakSet();
     this.invoked = new WeakSet();
     this.context = null;
@@ -15,7 +20,10 @@ export default class Interceptor {
     this.context = context;
   }
 
-  async updateInterceptionRules(page, { global, scene }) {
+  async updateInterceptionRules(
+    page,
+    { global, globalOnce, scene, sceneOnce }
+  ) {
     if (global !== undefined && !Array.isArray(global)) {
       const tag = Object.prototype.toString.call(global);
       throw new Error(
@@ -32,14 +40,24 @@ export default class Interceptor {
       global: global
         ? [...global, ...this.interceptionRules.global]
         : this.interceptionRules.global,
-      scene: scene ?? this.interceptionRules.scene
+      globalOnce: globalOnce
+        ? [
+            ...globalOnce.map(rule => ({ ...rule, once: true })),
+            ...this.interceptionRules.globalOnce
+          ]
+        : this.interceptionRules.globalOnce,
+      scene: scene ?? this.interceptionRules.scene,
+      sceneOnce:
+        sceneOnce?.map(rule => ({ ...rule, once: true })) ??
+        this.interceptionRules.sceneOnce
     };
     await this.setRequestInterceptionOnce(page);
   }
 
   async updatePage(page) {
     this.interceptionRules = {
-      global: this.interceptionRules.global
+      global: this.interceptionRules.global,
+      globalOnce: this.interceptionRules.globalOnce
     };
     await this.setRequestInterceptionOnce(page);
   }
@@ -60,13 +78,17 @@ export default class Interceptor {
     await page.on("request", async request => {
       const {
         global: globalInterceptionRules,
-        scene: sceneInterceptionRules
+        globalOnce: globalOnceInterceptionRules,
+        scene: sceneInterceptionRules,
+        sceneOnce: sceneOnceInterceptionRules
       } = this.interceptionRules;
 
       try {
         let isIntercepted = false;
         const interceptions = [
           // scene interceptions has precedence over global interceptions
+          ...sceneOnceInterceptionRules,
+          ...globalOnceInterceptionRules,
           ...sceneInterceptionRules,
           ...globalInterceptionRules
         ];
@@ -85,6 +107,16 @@ export default class Interceptor {
             if (response !== null && response !== undefined) {
               if (interception.once && this.invoked.has(interception)) {
                 break;
+              }
+              if (interception.keepContext) {
+                this.context.set(interception.keepContext, {
+                  headers: request.headers(),
+                  method: request.method(),
+                  postData: request.postData(),
+                  resourceType: request.resourceType(),
+                  response,
+                  url: request.url()
+                });
               }
               isIntercepted = true;
               if (interception.onBeforeIntercept) {

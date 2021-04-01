@@ -1,7 +1,11 @@
 import Scenario from "../Scenario";
+import Interceptor from "../Interceptor";
 import SceneMock from "./mocks/SceneMock";
 import PageMock from "./mocks/PageMock";
 import InterceptorMock from "./mocks/InterceptorMock";
+
+jest.mock("../Interceptor", () => jest.fn());
+Interceptor.mockImplementation(() => new InterceptorMock());
 
 beforeEach(() => {
   global.page = new PageMock();
@@ -18,8 +22,9 @@ describe("Scenario arrange", () => {
   });
 
   it("should arrange Scene with intercept", async () => {
-    const { scenario } = createScenario("arrange Scene with intercept");
-    scenario.interceptor = new InterceptorMock();
+    const { scenario, contextPromise } = createScenario(
+      "arrange Scene with intercept"
+    );
 
     const page = new PageMock();
     const sceneInterceptionRules = [{ url: /test/, response: () => ({}) }];
@@ -30,8 +35,9 @@ describe("Scenario arrange", () => {
       })
       .play({ page });
 
-    expect(scenario.interceptor.setContext).toBeCalledTimes()
-    expect(scenario.interceptor.updateInterceptionRules).toBeCalledWith(page, {
+    const context = await contextPromise;
+    expect(context.interceptor.setContext).toBeCalledTimes(1);
+    expect(context.interceptor.updateInterceptionRules).toBeCalledWith(page, {
       scene: sceneInterceptionRules
     });
   });

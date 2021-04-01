@@ -1,17 +1,22 @@
-import Interceptor from "../Interceptor/Interceptor";
 import createKeyValueContext from "./createKeyValueContext";
+import Interceptor from "../Interceptor";
 
 export default class ScenarioContext {
   constructor(page, { interceptorOptions, ...options } = {}) {
     this.page = page;
     this.options = options;
-    this.scene = null;
     this.interceptor = new Interceptor(interceptorOptions);
+    this.interceptor.setContext(this);
+    this.scene = null;
     this.keyValueContext = createKeyValueContext();
   }
 
   get(key) {
     return this.keyValueContext.get(key);
+  }
+
+  wait(key, timeout) {
+    return this.keyValueContext.wait(key, timeout);
   }
 
   set(key, value) {

@@ -3,7 +3,6 @@ import getSceneName from "./utils/getSceneName";
 import invokeExpect from "./utils/invokeExpect";
 import { debug } from "./utils/log";
 import ScenarioContext from "./ScenarioContext";
-import Interceptor from "./Interceptor";
 import { withPostponedValues } from "./PostponedValue";
 
 export default class Scenario {
@@ -41,11 +40,12 @@ export default class Scenario {
       screenshot === true
         ? { takeScreenshot: true }
         : { takeScreenshot: true, ...screenshot };
-    this.interceptor = new Interceptor({
+
+    this.interceptorOptions = {
       compareUrl,
       interceptionFilter,
       interceptedResponseDefaults
-    });
+    };
     return this;
   }
 
@@ -69,6 +69,7 @@ export default class Scenario {
     page,
     url,
     intercept: globalInterceptionRules,
+    interceptOnce: globalInterceptionOnceRules,
     context: contextValuesToSet,
     ...sceneProperties
   }) {
@@ -82,16 +83,17 @@ export default class Scenario {
       if (page) {
         this.log("arrange page");
         await context.setPage(page);
-        await this.interceptor.updatePage(page);
+        await context.interceptor.updatePage(page);
       }
       const currentPage = page || context.getPage();
 
       // interceptions should be applied after page, because they applied to currentPage and irrelevant for previous one
       // interceptions should be applied before url, because it could intercept following requests
-      if (globalInterceptionRules) {
+      if (globalInterceptionRules || globalInterceptionOnceRules) {
         this.log(`setup global interceptions`);
-        await this.interceptor.updateInterceptionRules(currentPage, {
-          global: globalInterceptionRules
+        await context.interceptor.updateInterceptionRules(currentPage, {
+          global: globalInterceptionRules,
+          globalOnce: globalInterceptionOnceRules
         });
       }
 
@@ -104,11 +106,13 @@ export default class Scenario {
       }
 
       // scene should setup interceptions before url, because it could intercept following requests
-      if (scene?.intercept) {
+      if (scene?.intercept || scene?.interceptOnce) {
         this.log(`setup scene interceptions "${getSceneName(scene)}"`);
         const sceneInterceptionRules = scene.intercept;
-        await this.interceptor.updateInterceptionRules(currentPage, {
-          scene: sceneInterceptionRules
+        const sceneInterceptionOnceRules = scene.interceptOnce;
+        await context.interceptor.updateInterceptionRules(currentPage, {
+          scene: sceneInterceptionRules,
+          sceneOnce: sceneInterceptionOnceRules
         });
       }
 
@@ -202,9 +206,9 @@ export default class Scenario {
       expect.assertions(this.assertionsCount);
     }
 
-    const context = new ScenarioContext(page);
-
-    this.interceptor.setContext(context);
+    const context = new ScenarioContext(page, {
+      interceptorOptions: this.interceptorOptions
+    });
 
     /* eslint-disable no-await-in-loop */
     for (; this.stepIndex < this.steps.length; this.stepIndex += 1) {
@@ -218,8 +222,6 @@ export default class Scenario {
         break;
       }
     }
-
-    this.interceptor.setContext(null);
 
     const lastError = context.get("error");
     if (lastError) {
